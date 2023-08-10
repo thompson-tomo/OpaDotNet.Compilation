@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <Summary>Abstractions for OpaDotNet.Compilation</Summary>
+      <Description>Abstractions for OpaDotNet.Compilation</Description>
+    </PropertyGroup>
+</Project>

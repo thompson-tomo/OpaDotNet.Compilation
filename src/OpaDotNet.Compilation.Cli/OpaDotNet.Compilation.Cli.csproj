@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
+        <PackageReference Include="Microsoft.Extensions.Options"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+
+        <ProjectReference Include="..\OpaDotNet.Compilation.Abstractions\OpaDotNet.Compilation.Abstractions.csproj" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <Summary>Infrastructure for packaging OPA policy and data files into bundles using opa cli tool</Summary>
+      <Description>Infrastructure for packaging OPA policy and data files into bundles using opa cli tool</Description>
+    </PropertyGroup>
+</Project>

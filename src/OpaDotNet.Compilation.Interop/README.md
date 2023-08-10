@@ -1,0 +1,17 @@
+# About
+
+`Rego` compiler which uses interop wrapper for subset of [OPA SDK](https://pkg.go.dev/github.com/open-policy-agent/opa/sdk) for policy bundle compilation and packaging.
+
+**Note**. Due to inclusion of native dependencies, nuget `OpaDotNet.Compilation.Interop` package is ~15MB.
+
+## Example
+
+```csharp
+using OpaDotNet.Compilation.Interop;
+
+var compiler = new RegoInteropCompiler();
+var bundleStream = await compiler.CompileFile("example.rego", new[] { "example/hello" });
+
+// Use compiled policy bundle.
+...
+```

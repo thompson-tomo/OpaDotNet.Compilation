@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+    <PropertyGroup>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Optimize>true</Optimize>
+        <Configuration>Release</Configuration>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.7"/>
+        <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.7"/>
+    </ItemGroup>
+    <ItemGroup>
+      <None Update="TestData\policy.rego">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Remove="BenchmarkDotNet.Artifacts\**" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\src\OpaDotNet.Compilation.Cli\OpaDotNet.Compilation.Cli.csproj" />
+      <ProjectReference Include="..\src\OpaDotNet.Compilation.Interop\OpaDotNet.Compilation.Interop.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
+    </ItemGroup>
+</Project>
