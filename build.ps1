@@ -1,3 +1,4 @@
+#! /usr/bin/pwsh
 
 $targets = @(
     @{
@@ -17,11 +18,13 @@ $targets = @(
 )
 
 if (Test-Path ./bin) {
-    rm ./bin -Recurse
+    Remove-Item ./bin -Recurse
 }
 
 $targets | %{
-    echo "Building $($_.OS)-$($_.Arch)"
+    $outPath = "$($_.OS)-$($_.Arch)"
+
+    Write-Host "Building $outPath...."
 
     $env:CGO_ENABLED = 1
     $env:GOOS = $_.OS
@@ -31,7 +34,11 @@ $targets | %{
 
     $env:WSLENV = "GOOS/u:GOARCH/u:CGO_ENABLED/u:CC/u:CXX/u"
 
-    wsl /usr/local/go/bin/go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/Opa.Interop.$($_.Ext)" ./main.go
+    if ($IsWindows) {
+        wsl /usr/local/go/bin/go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+    } else {
+        go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+    }
 }
 
 Write-Host -ForegroundColor Green "Done!"

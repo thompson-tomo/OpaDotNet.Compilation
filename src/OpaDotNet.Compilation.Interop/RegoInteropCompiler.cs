@@ -8,6 +8,9 @@ using OpaDotNet.Compilation.Abstractions;
 
 namespace OpaDotNet.Compilation.Interop;
 
+/// <summary>
+/// Compiles OPA bundle with OPA SDK interop wrapper.
+/// </summary>
 public class RegoInteropCompiler : IRegoCompiler
 {
     private static IOptions<RegoCompilerOptions> Default { get; } = new OptionsWrapper<RegoCompilerOptions>(new());
@@ -16,6 +19,11 @@ public class RegoInteropCompiler : IRegoCompiler
 
     private readonly IOptions<RegoCompilerOptions> _options;
 
+    /// <summary>
+    /// Creates new instance of <see cref="RegoInteropCompiler"/> class.
+    /// </summary>
+    /// <param name="options">Compilation options</param>
+    /// <param name="logger">Logger instance</param>
     public RegoInteropCompiler(
         IOptions<RegoCompilerOptions>? options = null,
         ILogger<RegoInteropCompiler>? logger = null)
@@ -24,6 +32,7 @@ public class RegoInteropCompiler : IRegoCompiler
         _logger = logger ?? NullLogger<RegoInteropCompiler>.Instance;
     }
 
+    /// <inheritdoc />
     public Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
         var v = Interop.OpaGetVersion();
@@ -39,6 +48,7 @@ public class RegoInteropCompiler : IRegoCompiler
         return Task.FromResult(result);
     }
 
+    /// <inheritdoc />
     public Task<Stream> CompileBundle(
         string bundlePath,
         IEnumerable<string>? entrypoints = null,
@@ -59,6 +69,7 @@ public class RegoInteropCompiler : IRegoCompiler
         return Task.FromResult(result);
     }
 
+    /// <inheritdoc />
     public Task<Stream> CompileFile(
         string sourceFilePath,
         IEnumerable<string>? entrypoints = null,
@@ -77,6 +88,7 @@ public class RegoInteropCompiler : IRegoCompiler
         return Task.FromResult(result);
     }
 
+    /// <inheritdoc />
     public async Task<Stream> CompileSource(
         string source,
         IEnumerable<string>? entrypoints = null,

@@ -62,3 +62,30 @@ var bundleStream = await compiler.CompileFile("example.rego", new[] { "example/h
 // Use compiled policy bundle.
 ...
 ```
+
+## Building
+
+### Prerequisites
+
+- go lang v1.20
+- dotnet SDK 7.0
+- opa cli
+
+#### Linux (WSL)
+
+- `gcc` to compile `Opa.Interop.so`
+- `gcc-mingw-w64` to compile `Opa.Interop.dll`
+
+#### Windows
+
+> [!NOTE]
+> WSL 2.0 is required to compile `Opa.Interop.so` on windows.
+
+- Powershell Core 7.0+
+- WSL 2.0
+
+### Build and Test
+
+- Run `build.ps1` Compile [Opa.Interop](./interop/) libraries
+- Run `dotnet build` to build the project or use Visual Studio to build `OpaDotNet.Compilation.sln`
+- Run `dotnet test` to test the project or use Visual Studio test explorer.

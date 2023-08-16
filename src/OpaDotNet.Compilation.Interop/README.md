@@ -6,9 +6,9 @@
 
 ## Versions
 
-| Version  | OPA SDK Version | Platforms                  |
-|----------|-----------------|----------------------------|
-| v1.0.X   | v0.55.0         | linux-amd64 win-amd64      |
+| Version  | OPA SDK Version | Platforms              |
+|----------|-----------------|------------------------|
+| v1.0.X   | v0.55.0         | linux-x64 win-x64      |
 
 ## Example
 

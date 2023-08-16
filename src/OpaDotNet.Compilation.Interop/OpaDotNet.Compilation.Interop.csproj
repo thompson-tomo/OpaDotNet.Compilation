@@ -19,10 +19,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="$(SolutionDir)bin\Opa.Interop.dll" Pack="true" PackagePath="runtimes/win-x64/native">
+      <None Include="$(SolutionDir)bin\windows-amd64\Opa.Interop.dll" Pack="true" PackagePath="runtimes/win-x64/native">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Include="$(SolutionDir)bin\Opa.Interop.so" Pack="true" PackagePath="runtimes/linux-x64/native">
+      <None Include="$(SolutionDir)bin\linux-amd64\Opa.Interop.so" Pack="true" PackagePath="runtimes/linux-x64/native">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
