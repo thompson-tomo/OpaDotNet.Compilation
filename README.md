@@ -14,9 +14,9 @@ Infrastructure for packaging OPA policy and data files into bundles for [OpaDotN
 
 Which one you should be using?
 
-Use [`OpaDotNet.Compilation.Cli`](./src/OpaDotNet.Compilation.Cli) if you have `opa` CLI [tool](https://www.openpolicyagent.org/docs/latest/cli) installed or you need functionality besides compilation (running tests, syntax checking etc.). Suitable for web applications and/or applications running in Docker containers.
+Use `OpaDotNet.Compilation.Cli` if you have `opa` CLI [tool](https://www.openpolicyagent.org/docs/latest/cli) installed or you need functionality besides compilation (running tests, syntax checking etc.). Suitable for web applications and/or applications running in Docker containers. See [README](./src/OpaDotNet.Compilation.Cli) for more details.
 
-Use [`OpaDotNet.Compilation.Interop`](./src/OpaDotNet.Compilation.Interop/) if you need compilation only and want to avoid having external dependencies. Suitable for libraries, console application etc.
+Use `OpaDotNet.Compilation.Interop` if you need compilation only and want to avoid having external dependencies. Suitable for libraries, console application etc. See [README](./src/OpaDotNet.Compilation.Interop/README.md) for more details.
 
 ### Cli
 

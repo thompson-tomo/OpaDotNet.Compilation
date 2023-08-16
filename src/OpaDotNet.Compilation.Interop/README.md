@@ -4,6 +4,12 @@
 
 **Note**. Due to inclusion of native dependencies, nuget `OpaDotNet.Compilation.Interop` package is ~15MB.
 
+## Versions
+
+| Version  | OPA SDK Version | Platforms                  |
+|----------|-----------------|----------------------------|
+| v1.0.X   | v0.55.0         | linux-amd64 win-amd64      |
+
 ## Example
 
 ```csharp
