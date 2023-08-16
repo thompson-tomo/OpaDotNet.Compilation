@@ -27,6 +27,10 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Include="README.md" Pack="true" PackagePath=""/>
+    </ItemGroup>
+
     <PropertyGroup>
       <Summary>Infrastructure for packaging OPA policy and data files into bundles using native wrapper over OPA SDK</Summary>
       <Description>Infrastructure for packaging OPA policy and data files into bundles using native wrapper over OPA SDK</Description>
