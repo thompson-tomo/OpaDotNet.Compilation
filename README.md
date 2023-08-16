@@ -1,3 +1,6 @@
+[![CI](https://github.com/me-viper/OpaDotNet.Compilation/actions/workflows/ci.yml/badge.svg)](https://github.com/me-viper/OpaDotNet.Compilation/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/me-viper/OpaDotNet.Compilation/badge.svg?branch=main)](https://coveralls.io/github/me-viper/OpaDotNet.Compilation?branch=main)
+
 # Open Policy Agent (OPA) Compilation Tools
 
 Infrastructure for packaging OPA policy and data files into bundles for [OpaDotNet](https://github.com/me-viper/OpaDotNet) project.
