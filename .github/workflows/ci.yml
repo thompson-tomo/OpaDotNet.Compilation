@@ -72,7 +72,7 @@ jobs:
 
     - name: Pack
       if: ${{ inputs.release }}
-      run: dotnet pack -c Release -o ./artifacts
+      run: dotnet pack -c Release --no-build -o ./artifacts
 
     - uses: actions/upload-artifact@v3
       if: ${{ inputs.release }}
