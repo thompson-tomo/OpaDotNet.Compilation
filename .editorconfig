@@ -31,7 +31,7 @@ csharp_space_around_binary_operators = before_and_after
 indent_style = tab
 indent_size = 4
 
-[*.csproj]
+[*.{csproj,props}]
 indent_size = 2
 
 [*.{yaml,yml,json,md}]

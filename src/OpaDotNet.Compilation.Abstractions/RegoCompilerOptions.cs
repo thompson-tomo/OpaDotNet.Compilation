@@ -2,6 +2,9 @@
 
 namespace OpaDotNet.Compilation.Abstractions;
 
+/// <summary>
+/// Contains members that affect compiler behavior.
+/// </summary>
 [PublicAPI]
 public class RegoCompilerOptions
 {

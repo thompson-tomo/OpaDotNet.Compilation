@@ -2,6 +2,9 @@
 
 namespace OpaDotNet.Compilation.Abstractions;
 
+/// <summary>
+/// The exception that is thrown when OPA policy compilation fails.
+/// </summary>
 [PublicAPI]
 public class RegoCompilationException : Exception
 {

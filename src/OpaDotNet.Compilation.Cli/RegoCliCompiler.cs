@@ -42,6 +42,7 @@ public class RegoCliCompiler : IRegoCompiler
         ? "opa"
         : _options.Value.OpaToolPath;
 
+    /// <inheritdoc />
     public async Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
         var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
