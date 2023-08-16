@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 7.0.x
 
   build:
-    uses: ./.github/workflows/tests.yml
+    uses: ./.github/workflows/ci.yml
     with:
       release: true
 
