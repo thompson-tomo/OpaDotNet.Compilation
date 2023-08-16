@@ -1,0 +1,39 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    branches: [ main, develop ]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
+
+  build:
+    uses: ./.github/workflows/tests.yml
+    with:
+      release: true
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: artifacts
+        path: ./artifacts
+
+    - name: Push Nuget Package
+      run: dotnet nuget push "./artifacts/*.nupkg" -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+    - name: Push Nuget Symbols
+      run: dotnet nuget push "./artifacts/*.snupkg" -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
