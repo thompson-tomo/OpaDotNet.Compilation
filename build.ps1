@@ -38,6 +38,10 @@ $targets | %{
     } else {
         go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
     }
+
+    if (-not $?) {
+        throw "Compilation failed"
+    }
 }
 
 Write-Host -ForegroundColor Green "Done!"

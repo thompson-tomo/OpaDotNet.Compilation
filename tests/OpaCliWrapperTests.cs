@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace OpaDotNet.Compilation.Tests;
 
+[Trait("NeedsCli", "true")]
 public class OpaCliWrapperTests
 {
     private readonly ITestOutputHelper _output;

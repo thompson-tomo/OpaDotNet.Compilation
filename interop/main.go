@@ -46,16 +46,18 @@ import (
 func main() {
 }
 
-var opaVersion C.struct_OpaVersion
+var opaVersion *C.struct_OpaVersion
 var defaultCaps *ast.Capabilities
 
 func init() {
-	opaVersion = C.struct_OpaVersion{
-		libVersion: C.CString(version.Version),
-		goVersion:  C.CString(version.GoVersion),
-		commit:     C.CString(version.Vcs),
-		platform:   C.CString(version.Platform),
-	}
+	// We're will leaking this memory but it is initialized only once so it should not be a big deal.
+	opaVersion = (*C.struct_OpaVersion)(C.malloc(C.sizeof_struct_OpaVersion))
+	C.memset(unsafe.Pointer(opaVersion), 0, C.sizeof_struct_OpaVersion)
+
+	(*opaVersion).libVersion = C.CString(version.Version)
+	(*opaVersion).goVersion = C.CString(version.GoVersion)
+	(*opaVersion).commit = C.CString(version.Vcs)
+	(*opaVersion).platform = C.CString(version.Platform)
 
 	defaultCaps = ast.CapabilitiesForThisVersion()
 }
@@ -71,7 +73,7 @@ type buildParams struct {
 }
 
 //export OpaGetVersion
-func OpaGetVersion() C.struct_OpaVersion {
+func OpaGetVersion() *C.struct_OpaVersion {
 	return opaVersion
 }
 
