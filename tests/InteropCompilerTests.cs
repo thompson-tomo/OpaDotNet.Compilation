@@ -29,11 +29,11 @@ public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompi
     {
     }
 
-    protected override RegoInteropCompiler CreateCompiler(RegoCompilerOptions opts, ILoggerFactory loggerFactory)
+    protected override RegoInteropCompiler CreateCompiler(RegoCompilerOptions? opts = null, ILoggerFactory? loggerFactory = null)
     {
         return new RegoInteropCompiler(
-            new OptionsWrapper<RegoCompilerOptions>(opts),
-            loggerFactory.CreateLogger<RegoInteropCompiler>()
+            opts == null ? null : new OptionsWrapper<RegoCompilerOptions>(opts),
+            loggerFactory?.CreateLogger<RegoInteropCompiler>()
             );
     }
 
