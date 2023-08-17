@@ -28,10 +28,16 @@ internal static class Interop
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    private struct OpaBuildParams
+    private struct OpaFsBuildParams
     {
         public string Source;
 
+        public OpaBuildParams Params;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    private struct OpaBuildParams
+    {
         public string Target;
 
         public string? CapabilitiesFile;
@@ -67,8 +73,8 @@ internal static class Interop
     public static extern IntPtr OpaGetVersion();
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int OpaBuildEx(
-        [In] ref OpaBuildParams buildParams,
+    private static extern int OpaBuildFromFs(
+        [In] ref OpaFsBuildParams buildParams,
         out nint buildResult);
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
@@ -94,7 +100,6 @@ internal static class Interop
         {
             var buildParams = new OpaBuildParams
             {
-                Source = source,
                 CapabilitiesVersion = options.CapabilitiesVersion,
                 CapabilitiesFile = capabilitiesFile,
                 BundleMode = isBundle,
@@ -121,7 +126,13 @@ internal static class Interop
 
             try
             {
-                var result = OpaBuildEx(ref buildParams, out bundle);
+                var fsBuildParams = new OpaFsBuildParams
+                {
+                    Source = source,
+                    Params = buildParams,
+                };
+
+                var result = OpaBuildFromFs(ref fsBuildParams, out bundle);
 
                 if (bundle == nint.Zero)
                     throw new RegoCompilationException(source, "Compilation failed");

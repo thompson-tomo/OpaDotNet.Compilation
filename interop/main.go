@@ -13,7 +13,6 @@ import (
 		};
 
 		struct OpaBuildParams {
-		    char* source;
 		    char* target;
 		    char* capabilitiesFile;
 		    char* capabilitiesVersion;
@@ -21,6 +20,11 @@ import (
 		    char** entrypoints;
 		    int entrypointsLen;
 			int debug;
+		};
+
+		struct OpaFsBuildParams {
+			char* source;
+			struct OpaBuildParams params;
 		};
 
 		struct OpaBuildResult {
@@ -50,7 +54,7 @@ var opaVersion *C.struct_OpaVersion
 var defaultCaps *ast.Capabilities
 
 func init() {
-	// We're will leaking this memory but it is initialized only once so it should not be a big deal.
+	// We will be leaking this memory, but it is initialized only once so it should not be a big deal.
 	opaVersion = (*C.struct_OpaVersion)(C.malloc(C.sizeof_struct_OpaVersion))
 	C.memset(unsafe.Pointer(opaVersion), 0, C.sizeof_struct_OpaVersion)
 
@@ -77,29 +81,29 @@ func OpaGetVersion() *C.struct_OpaVersion {
 	return opaVersion
 }
 
-//export OpaBuildEx
-func OpaBuildEx(params *C.struct_OpaBuildParams, buildResult **C.struct_OpaBuildResult) int {
-	eps := make([]string, params.entrypointsLen)
+//export OpaBuildFromFs
+func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_OpaBuildResult) int {
+	eps := make([]string, fsParams.params.entrypointsLen)
 
 	var logger logging.Logger
 	loggerBuffer := bytes.NewBuffer(nil)
 
-	if params.entrypoints != nil {
-		var pEps **C.char = params.entrypoints
+	if fsParams.params.entrypoints != nil {
+		var pEps **C.char = fsParams.params.entrypoints
 
-		for _, ep := range unsafe.Slice(pEps, int(params.entrypointsLen)) {
+		for _, ep := range unsafe.Slice(pEps, int(fsParams.params.entrypointsLen)) {
 			eps = append(eps, C.GoString(ep))
 		}
 	}
 
 	bp := &buildParams{
-		source:              C.GoString(params.source),
-		capabilitiesFile:    C.GoString(params.capabilitiesFile),
-		capabilitiesVersion: C.GoString(params.capabilitiesVersion),
-		target:              C.GoString(params.target),
-		bundleMode:          params.bundleMode > 0,
+		source:              C.GoString(fsParams.source),
+		capabilitiesFile:    C.GoString(fsParams.params.capabilitiesFile),
+		capabilitiesVersion: C.GoString(fsParams.params.capabilitiesVersion),
+		target:              C.GoString(fsParams.params.target),
+		bundleMode:          fsParams.params.bundleMode > 0,
 		entrypoints:         eps,
-		debug:               params.debug > 0,
+		debug:               fsParams.params.debug > 0,
 	}
 
 	if !bp.debug {
