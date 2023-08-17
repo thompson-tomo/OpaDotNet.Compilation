@@ -92,3 +92,7 @@ var bundleStream = await compiler.CompileFile("example.rego", new[] { "example/h
 - Run `build.ps1` Compile [Opa.Interop](./interop/) libraries
 - Run `dotnet build` to build the project or use Visual Studio to build `OpaDotNet.Compilation.sln`
 - Run `dotnet test` to test the project or use Visual Studio test explorer.
+
+## 3rd Party Libraries and Contributions
+
+- [OPA SDK](https://pkg.go.dev/github.com/open-policy-agent/opa/sdk) - High-level API for embedding OPA inside of Go programs.
