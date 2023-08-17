@@ -1,0 +1,29 @@
+#nullable enable
+OpaDotNet.Compilation.Abstractions.IRegoCompiler
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileBundle(string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileFile(string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileSource(string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.Version(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<OpaDotNet.Compilation.Abstractions.RegoCompilerVersion!>!
+OpaDotNet.Compilation.Abstractions.RegoCompilationException
+OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message) -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message, System.Exception? innerException) -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilationException.SourceFile.get -> string!
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.CapabilitiesVersion.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.CapabilitiesVersion.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.Debug.get -> bool
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.Debug.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.OutputPath.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.OutputPath.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PreserveBuildArtifacts.get -> bool
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PreserveBuildArtifacts.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.RegoCompilerOptions() -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Commit.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Commit.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.GoVersion.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.GoVersion.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Platform.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Platform.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Version.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Version.set -> void
