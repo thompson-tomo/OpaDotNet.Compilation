@@ -44,27 +44,27 @@ internal static class Interop
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    private unsafe struct OpaBuildResult
+    private struct OpaBuildResult
     {
-        public byte* Result;
+        public nint Result;
 
         public int ResultLen;
 
-        public sbyte* Errors;
+        [MarshalAs(UnmanagedType.LPStr)] public string Errors;
 
-        public sbyte* Log;
-    };
+        [MarshalAs(UnmanagedType.LPStr)] public string Log;
+    }
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
     public static extern OpaVersion OpaGetVersion();
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-    private static extern unsafe int OpaBuildEx(
-        ref OpaBuildParams buildParams,
-        OpaBuildResult** buildResult);
+    private static extern int OpaBuildEx(
+        OpaBuildParams buildParams,
+        out nint buildResult);
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
-    private static extern unsafe void OpaFree(OpaBuildResult* buildResult);
+    private static extern void OpaFree(IntPtr buildResult);
 
     public static Stream Compile(
         string source,
@@ -109,42 +109,38 @@ internal static class Interop
                 buildParams.EntrypointsLen = ep.Length;
             }
 
-            unsafe
+            var bundle = nint.Zero;
+
+            try
             {
-                OpaBuildResult* bundle = null;
+                var result = OpaBuildEx(buildParams, out bundle);
 
-                try
-                {
-                    var result = OpaBuildEx(ref buildParams, &bundle);
+                if (bundle == nint.Zero)
+                    throw new RegoCompilationException(source, "Compilation failed");
 
-                    if (bundle->Log != null)
-                    {
-                        var message = new string(bundle->Log);
-                        logger.LogDebug("{CompilationLog}", message);
-                    }
+                var resultBundle = Marshal.PtrToStructure<OpaBuildResult>(bundle);
 
-                    if (result != 0)
-                    {
-                        var message = "Unknown compilation error";
+                if (!string.IsNullOrWhiteSpace(resultBundle.Log))
+                    logger.LogDebug("{BuildLog}", resultBundle.Log);
 
-                        if (bundle->Errors != null)
-                            message = new string(bundle->Errors);
+                if (!string.IsNullOrWhiteSpace(resultBundle.Errors))
+                    throw new RegoCompilationException(source, resultBundle.Errors);
 
-                        throw new RegoCompilationException(source, message);
-                    }
+                if (result != 0)
+                    throw new RegoCompilationException(source, "Unknown compilation error");
 
-                    if (bundle->Result == null || bundle->ResultLen <= 0)
-                        throw new RegoCompilationException(source, "Bad result");
+                if (resultBundle.ResultLen == 0 || resultBundle.Result == nint.Zero)
+                    throw new RegoCompilationException(source, "Bad result");
 
-                    var buffer = new Span<byte>(bundle->Result, bundle->ResultLen);
+                var bundleBytes = new byte[resultBundle.ResultLen];
+                Marshal.Copy(resultBundle.Result, bundleBytes, 0, resultBundle.ResultLen);
 
-                    return new MemoryStream(buffer.ToArray());
-                }
-                finally
-                {
-                    if (bundle != null)
-                        OpaFree(bundle);
-                }
+                return new MemoryStream(bundleBytes);
+            }
+            finally
+            {
+                if (bundle != nint.Zero)
+                    OpaFree(bundle);
             }
         }
         finally

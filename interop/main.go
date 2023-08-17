@@ -116,6 +116,8 @@ func OpaBuildEx(params *C.struct_OpaBuildParams, buildResult **C.struct_OpaBuild
 	*buildResult = (*C.struct_OpaBuildResult)(C.malloc(C.sizeof_struct_OpaBuildResult))
 	C.memset(unsafe.Pointer(*buildResult), 0, C.sizeof_struct_OpaBuildResult)
 
+	logger.Debug("Result pointer: %p", *buildResult)
+
 	if bp.debug {
 		(**buildResult).log = C.CString(loggerBuffer.String())
 	}
