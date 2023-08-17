@@ -60,7 +60,7 @@ internal static class Interop
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
     private static extern int OpaBuildEx(
-        OpaBuildParams buildParams,
+        [In] ref OpaBuildParams buildParams,
         out nint buildResult);
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
@@ -113,7 +113,7 @@ internal static class Interop
 
             try
             {
-                var result = OpaBuildEx(buildParams, out bundle);
+                var result = OpaBuildEx(ref buildParams, out bundle);
 
                 if (bundle == nint.Zero)
                     throw new RegoCompilationException(source, "Compilation failed");
@@ -139,8 +139,8 @@ internal static class Interop
             }
             finally
             {
-                if (bundle != nint.Zero)
-                    OpaFree(bundle);
+                // if (bundle != nint.Zero)
+                //     OpaFree(bundle);
             }
         }
         finally
