@@ -6,7 +6,8 @@ Basically, it's equivalent to executing [`opa build`](https://www.openpolicyagen
 
 ## Example
 
-**Important**. You will need `opa` cli tool v0.20.0+ to be in your PATH or provide full path in `RegoCliCompilerOptions`.
+**Important**. You will need `opa` cli tool v0.20.0+ to be in your PATH or provide full path
+in `RegoCliCompilerOptions`.
 
 ```csharp
 using OpaDotNet.Compilation.Cli;

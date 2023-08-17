@@ -1,4 +1,7 @@
-﻿using JetBrains.Annotations;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+
+using JetBrains.Annotations;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,6 +16,15 @@ namespace OpaDotNet.Compilation.Tests;
 [UsedImplicitly]
 public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompilerOptions>
 {
+    static InteropCompilerTests()
+    {
+        // https://github.com/dotnet/sdk/issues/24708
+        NativeLibrary.SetDllImportResolver(
+            typeof(RegoInteropCompiler).Assembly,
+            DllImportResolver
+            );
+    }
+
     public InteropCompilerTests(ITestOutputHelper output) : base(output)
     {
     }
@@ -23,5 +35,16 @@ public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompi
             new OptionsWrapper<RegoCompilerOptions>(opts),
             loggerFactory.CreateLogger<RegoInteropCompiler>()
             );
+    }
+
+    private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return NativeLibrary.Load(Path.Combine("runtimes/linux-x64/native", libraryName), assembly, searchPath);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return NativeLibrary.Load(Path.Combine("runtimes/win-x64/native", libraryName), assembly, searchPath);
+
+        return IntPtr.Zero;
     }
 }
