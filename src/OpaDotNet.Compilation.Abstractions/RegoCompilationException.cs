@@ -11,7 +11,15 @@ public class RegoCompilationException : Exception
     /// <summary>
     /// Source file that caused the current exception.
     /// </summary>
-    public string SourceFile { get; private set; }
+    public string? SourceFile { get; private set; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RegoCompilationException"/>.
+    /// </summary>
+    /// <param name="message">The message that describes the error.</param>
+    public RegoCompilationException(string? message) : base(message)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RegoCompilationException"/>.

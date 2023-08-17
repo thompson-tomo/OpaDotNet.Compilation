@@ -14,12 +14,16 @@ internal static class Interop
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct OpaVersion
     {
+        [MarshalAs(UnmanagedType.LPStr)]
         public string LibVersion;
 
+        [MarshalAs(UnmanagedType.LPStr)]
         public string GoVersion;
 
+        [MarshalAs(UnmanagedType.LPStr)]
         public string Commit;
 
+        [MarshalAs(UnmanagedType.LPStr)]
         public string Platform;
     }
 
@@ -34,13 +38,15 @@ internal static class Interop
 
         public string? CapabilitiesVersion;
 
-        [MarshalAs(UnmanagedType.I1)] public bool BundleMode;
+        [MarshalAs(UnmanagedType.I1)]
+        public bool BundleMode;
 
         public nint Entrypoints;
 
         public int EntrypointsLen;
 
-        [MarshalAs(UnmanagedType.I1)] public bool Debug;
+        [MarshalAs(UnmanagedType.I1)]
+        public bool Debug;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -50,13 +56,15 @@ internal static class Interop
 
         public int ResultLen;
 
-        [MarshalAs(UnmanagedType.LPStr)] public string Errors;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string Errors;
 
-        [MarshalAs(UnmanagedType.LPStr)] public string Log;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string Log;
     }
 
-    [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
-    public static extern OpaVersion OpaGetVersion();
+    [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr OpaGetVersion();
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
     private static extern int OpaBuildEx(
@@ -139,8 +147,8 @@ internal static class Interop
             }
             finally
             {
-                // if (bundle != nint.Zero)
-                //     OpaFree(bundle);
+                if (bundle != nint.Zero)
+                    OpaFree(bundle);
             }
         }
         finally

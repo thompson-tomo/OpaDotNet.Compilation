@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -35,7 +36,12 @@ public class RegoInteropCompiler : IRegoCompiler
     /// <inheritdoc />
     public Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
-        var v = Interop.OpaGetVersion();
+        var vp = Interop.OpaGetVersion();
+
+        if (vp == nint.Zero)
+            throw new RegoCompilationException("Failed to get version");
+
+        var v = Marshal.PtrToStructure<Interop.OpaVersion>(vp);
 
         var result = new RegoCompilerVersion
         {
