@@ -83,16 +83,29 @@ func OpaGetVersion() *C.struct_OpaVersion {
 
 //export OpaBuildFromFs
 func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_OpaBuildResult) int {
-	eps := make([]string, fsParams.params.entrypointsLen)
-
 	var logger logging.Logger
 	loggerBuffer := bytes.NewBuffer(nil)
+
+	if fsParams.params.debug == 0 {
+		logger = logging.NewNoOpLogger()
+	} else {
+		sl := logging.New()
+		sl.SetLevel(logging.Debug)
+		sl.SetOutput(loggerBuffer)
+		logger = sl
+	}
+
+	eps := make([]string, 0, fsParams.params.entrypointsLen)
 
 	if fsParams.params.entrypoints != nil {
 		var pEps **C.char = fsParams.params.entrypoints
 
-		for _, ep := range unsafe.Slice(pEps, int(fsParams.params.entrypointsLen)) {
-			eps = append(eps, C.GoString(ep))
+		for _, entrypoint := range unsafe.Slice(pEps, int(fsParams.params.entrypointsLen)) {
+			ep := C.GoString(entrypoint)
+
+			if len(ep) > 0 {
+				eps = append(eps, ep)
+			}
 		}
 	}
 
@@ -106,16 +119,8 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 		debug:               fsParams.params.debug > 0,
 	}
 
-	if !bp.debug {
-		logger = logging.NewNoOpLogger()
-	} else {
-		sl := logging.New()
-		sl.SetLevel(logging.Debug)
-		sl.SetOutput(loggerBuffer)
-		logger = sl
-	}
-
 	logger.Debug("Compiler version: %s", version.Version)
+	logger.Debug("Explicit %d entrypoints: %v", len(eps), eps)
 
 	resultBytes, err := opaBuild(bp, loggerBuffer)
 

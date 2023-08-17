@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.1.1 (2023-08-17)
+
+### Bug Fixes
+
+* Fix entrypoints array construction
+
 ## OpaDotNet.Compilation v1.1.0 (2023-08-17)
 
 ### Bug Fixes
