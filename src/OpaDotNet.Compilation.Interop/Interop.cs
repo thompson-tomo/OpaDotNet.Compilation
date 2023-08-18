@@ -70,7 +70,7 @@ internal static class Interop
     }
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr OpaGetVersion();
+    public static extern nint OpaGetVersion();
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
     private static extern int OpaBuildFromFs(
@@ -78,7 +78,7 @@ internal static class Interop
         out nint buildResult);
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void OpaFree(IntPtr buildResult);
+    private static extern void OpaFree(nint buildResult);
 
     public static Stream Compile(
         string source,
