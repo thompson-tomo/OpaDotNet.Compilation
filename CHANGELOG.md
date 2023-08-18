@@ -1,6 +1,6 @@
 # Changelog
 
-## OpaDotNet.Compilation v1.1.2 (2023-08-18)
+## OpaDotNet.Compilation v1.1.3 (2023-08-18)
 
 ### Bug Fixes
 
