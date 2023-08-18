@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 * Do bundle path normalization for interop compiler
+* Do source file path normalization for interop compiler
 
 ## OpaDotNet.Compilation v1.1.1 (2023-08-17)
 

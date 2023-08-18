@@ -85,8 +85,10 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
 
+        var sf = new FileInfo(sourceFilePath);
+
         var result = Interop.Compile(
-            sourceFilePath,
+            sf.FullName,
             false,
             _options.Value,
             entrypoints,
