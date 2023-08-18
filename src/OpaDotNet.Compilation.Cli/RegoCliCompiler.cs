@@ -62,7 +62,13 @@ public class RegoCliCompiler : IRegoCompiler
 
         var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
 
-        var bundleDirectory = new DirectoryInfo(bundlePath);
+        var fullBundlePath = Path.GetFullPath(bundlePath);
+
+        // bundlePath can be directory or bundle archive.
+        var bundleDirectory =
+            File.GetAttributes(fullBundlePath).HasFlag(FileAttributes.Directory)
+            ? new DirectoryInfo(fullBundlePath)
+            : new FileInfo(fullBundlePath).Directory!;
 
         var outDir = new DirectoryInfo(_options.Value.OutputPath ?? bundleDirectory.FullName);
         var outputPath = outDir.FullName;
@@ -78,7 +84,7 @@ public class RegoCliCompiler : IRegoCompiler
             if (!fi.Exists)
             {
                 throw new RegoCompilationException(
-                    bundlePath,
+                    fullBundlePath,
                     $"Capabilities file {fi.FullName} was not found"
                     );
             }
@@ -100,7 +106,7 @@ public class RegoCliCompiler : IRegoCompiler
         var args = new OpaCliBuildArgs
         {
             IsBundle = true,
-            SourcePath = bundleDirectory.FullName,
+            SourcePath = fullBundlePath,
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,

@@ -1,10 +1,8 @@
 ﻿using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using OpaDotNet.Compilation.Abstractions;
-using OpaDotNet.Compilation.Cli;
 using OpaDotNet.Compilation.Tests.Common;
 
 using Xunit.Abstractions;
@@ -68,6 +66,26 @@ public abstract class CompilerTests<T, TOptions>
         Assert.Equal("root", data.RootElement.GetProperty("root").GetProperty("world").GetString());
         Assert.Equal("world", data.RootElement.GetProperty("test1").GetProperty("world").GetString());
         Assert.Equal("world1", data.RootElement.GetProperty("test2").GetProperty("world").GetString());
+    }
+
+    [Theory]
+    [InlineData("test1/hello")]
+    [InlineData("test2/hello")]
+    [InlineData("test1/hello", "./TestData/src.bundle.tar.gz")]
+    public async Task CompileBundleFromBundle(string? entrypoint, string? path = null)
+    {
+        var opts = new TOptions
+        {
+            Debug = true,
+        };
+
+        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new[] { entrypoint };
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        path ??= Path.Combine("TestData", "src.bundle.tar.gz");
+        var policy = await compiler.CompileBundle(path, eps);
+
+        AssertPolicy.IsValid(policy);
     }
 
     [Fact]

@@ -16,7 +16,7 @@ public interface IRegoCompiler
     /// <summary>
     /// Compiles OPA bundle from bundle directory.
     /// </summary>
-    /// <param name="bundlePath">Bundle directory path.</param>
+    /// <param name="bundlePath">Bundle directory or bundle archive path.</param>
     /// <param name="entrypoints">Which documents (entrypoints) will be queried when asking for policy decisions.</param>
     /// <param name="capabilitiesFilePath">
     /// Capabilities file that defines the built-in functions and other language features that policies may depend on.
