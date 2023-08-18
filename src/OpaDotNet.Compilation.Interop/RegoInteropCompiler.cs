@@ -63,8 +63,10 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(bundlePath);
 
+        var bp = new DirectoryInfo(bundlePath);
+
         var result = Interop.Compile(
-            bundlePath,
+            bp.FullName,
             true,
             _options.Value,
             entrypoints,

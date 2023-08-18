@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Json;
+
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using OpaDotNet.Compilation.Abstractions;
@@ -37,6 +39,35 @@ public abstract class CompilerTests<T, TOptions>
         var policy = await compiler.CompileFile(Path.Combine("TestData", "policy.rego"), eps);
 
         AssertPolicy.IsValid(policy);
+    }
+
+    [Theory]
+    [InlineData("test1/hello")]
+    [InlineData("test2/hello")]
+    [InlineData("test1/hello", "./TestData/compile-bundle/example")]
+    public async Task CompileBundle(string? entrypoint, string? path = null)
+    {
+        var opts = new TOptions
+        {
+            Debug = true,
+        };
+
+        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new[] { entrypoint };
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        path ??= Path.Combine("TestData", "compile-bundle", "example");
+        var policy = await compiler.CompileBundle(path, eps);
+
+        var bundle = TarGzHelper.ReadBundle(policy);
+
+        Assert.True(bundle.Policy.Length > 0);
+        Assert.True(bundle.Data.Length > 0);
+
+        var data = JsonDocument.Parse(bundle.Data);
+
+        Assert.Equal("root", data.RootElement.GetProperty("root").GetProperty("world").GetString());
+        Assert.Equal("world", data.RootElement.GetProperty("test1").GetProperty("world").GetString());
+        Assert.Equal("world1", data.RootElement.GetProperty("test2").GetProperty("world").GetString());
     }
 
     [Fact]
