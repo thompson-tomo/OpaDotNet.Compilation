@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.1.1 (2023-08-18)
+
+### Bug Fixes
+
+* Do bundle path normalization for interop compiler
+
 ## OpaDotNet.Compilation v1.1.1 (2023-08-17)
 
 ### Bug Fixes
