@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 
 using Microsoft.Extensions.Logging;
 
@@ -211,16 +212,28 @@ public abstract class CompilerTests<T, TOptions>
 
         await using (var bw = new BundleWriter(ms))
         {
+            using var inStream = new MemoryStream();
+            inStream.Write(Encoding.UTF8.GetBytes(TestHelpers.PolicySource("p2", "p2r")));
+            inStream.Seek(0, SeekOrigin.Begin);
+
             bw.WriteEntry(TestHelpers.SimplePolicySource, "p1.rego");
-            bw.WriteEntry(TestHelpers.PolicySource("p2", "p2r"), "/tests/p2.rego");
-            bw.WriteEntry("{}", "/tests/data.json");
+            bw.WriteEntry(inStream, "/tests/p2.rego");
+            bw.WriteEntry("{}"u8, "/tests/data.json");
         }
 
         ms.Seek(0, SeekOrigin.Begin);
 
+        if (File.Exists("policy.tar.gz"))
+            File.Delete("policy.tar.gz");
+
         await File.WriteAllBytesAsync("policy.tar.gz", ms.ToArray());
 
-        var compiler = CreateCompiler();
+        var opts = new TOptions
+        {
+            PruneUnused = true,
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
         var bundle = await compiler.CompileBundle("policy.tar.gz", TestHelpers.SimplePolicyEntrypoints);
 
         AssertBundle.DumpBundle(bundle, OutputHelper);

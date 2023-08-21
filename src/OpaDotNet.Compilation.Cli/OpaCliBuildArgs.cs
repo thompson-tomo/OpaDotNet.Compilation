@@ -18,7 +18,13 @@ internal class OpaCliBuildArgs
 
     public HashSet<string>? Entrypoints { get; init; }
 
+    public int OptimizationLevel { get; init; }
+
+    public bool PruneUnused { get; init; }
+
     public string? ExtraArguments { get; init; }
+
+    public bool Debug { get; init; }
 
     public override string ToString()
     {
@@ -37,6 +43,14 @@ internal class OpaCliBuildArgs
             if (!string.IsNullOrWhiteSpace(CapabilitiesVersion))
                 result.Append($" --capabilities {CapabilitiesVersion}");
         }
+
+        result.Append($" --optimize {OptimizationLevel}");
+
+        if (PruneUnused)
+            result.Append(" --prune-unused");
+
+        if (Debug)
+            result.Append(" --debug");
 
         result.Append($" -o {OutputFile}");
 

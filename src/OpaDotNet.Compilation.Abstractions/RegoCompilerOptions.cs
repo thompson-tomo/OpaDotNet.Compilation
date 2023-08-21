@@ -31,4 +31,15 @@ public class RegoCompilerOptions
     /// If <c>true</c> compiler will log debug information; otherwise <c>false</c>;
     /// </summary>
     public bool Debug { get; set; }
+
+    // BUG. Setting this to value > 0 crashes OPA compiler.
+    // /// <summary>
+    // /// Optimization level.
+    // /// </summary>
+    // public int OptimizationLevel { get; set; }
+
+    /// <summary>
+    /// Exclude dependents of entrypoints.
+    /// </summary>
+    public bool PruneUnused { get; set; }
 }

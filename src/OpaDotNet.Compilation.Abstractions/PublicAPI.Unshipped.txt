@@ -6,3 +6,5 @@ OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threadi
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.get -> bool
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.set -> void

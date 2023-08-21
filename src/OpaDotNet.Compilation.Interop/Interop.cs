@@ -53,6 +53,11 @@ internal static class Interop
 
         [MarshalAs(UnmanagedType.I1)]
         public bool Debug;
+
+        public int OptimizationLevel;
+
+        [MarshalAs(UnmanagedType.I1)]
+        public bool PruneUnused;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -105,6 +110,7 @@ internal static class Interop
                 BundleMode = isBundle,
                 Target = "wasm",
                 Debug = options.Debug,
+                PruneUnused = options.PruneUnused,
             };
 
             if (entrypoints != null)

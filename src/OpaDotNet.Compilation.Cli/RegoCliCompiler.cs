@@ -117,6 +117,8 @@ public class RegoCliCompiler : IRegoCompiler
             ExtraArguments = _options.Value.ExtraArguments,
             CapabilitiesFile = capabilitiesFile,
             CapabilitiesVersion = _options.Value.CapabilitiesVersion,
+            PruneUnused = _options.Value.PruneUnused,
+            Debug = _options.Value.Debug,
         };
 
         try
@@ -163,6 +165,8 @@ public class RegoCliCompiler : IRegoCompiler
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
             CapabilitiesVersion = _options.Value.CapabilitiesVersion,
+            PruneUnused = _options.Value.PruneUnused,
+            Debug = _options.Value.Debug,
         };
 
         return await Build(cli, args, cancellationToken).ConfigureAwait(false);

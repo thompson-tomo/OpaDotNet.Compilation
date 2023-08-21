@@ -20,6 +20,8 @@ import (
 		    char** entrypoints;
 		    int entrypointsLen;
 			int debug;
+			int optimizationLevel;
+			int pruneUnused;
 		};
 
 		struct OpaFsBuildParams {
@@ -74,6 +76,8 @@ type buildParams struct {
 	bundleMode          bool
 	entrypoints         []string
 	debug               bool
+	optimizationLevel   int
+	pruneUnused         bool
 }
 
 //export OpaGetVersion
@@ -117,10 +121,12 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 		bundleMode:          fsParams.params.bundleMode > 0,
 		entrypoints:         eps,
 		debug:               fsParams.params.debug > 0,
+		optimizationLevel:   int(fsParams.params.optimizationLevel),
+		pruneUnused:         fsParams.params.pruneUnused > 0,
 	}
 
 	logger.Debug("Compiler version: %s", version.Version)
-	logger.Debug("Explicit %d entrypoints: %v", len(eps), eps)
+	logger.Debug("Build params: %v", bp)
 
 	resultBytes, err := opaBuild(bp, loggerBuffer)
 
@@ -227,6 +233,8 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithCapabilities(caps).
 		WithEnablePrintStatements(true).
 		WithOutput(buf).
+		WithPruneUnused(params.pruneUnused).
+		WithOptimizationLevel(params.optimizationLevel).
 		WithRegoAnnotationEntrypoints(true)
 
 	if params.debug {
