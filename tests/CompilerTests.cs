@@ -15,8 +15,11 @@ public abstract class CompilerTests<T, TOptions>
 {
     protected readonly ILoggerFactory LoggerFactory;
 
+    protected readonly ITestOutputHelper OutputHelper;
+
     protected CompilerTests(ITestOutputHelper output)
     {
+        OutputHelper = output;
         LoggerFactory = new LoggerFactory(new[] { new XunitLoggerProvider(output) });
     }
 
@@ -36,7 +39,7 @@ public abstract class CompilerTests<T, TOptions>
         var compiler = CreateCompiler(opts, LoggerFactory);
         var policy = await compiler.CompileFile(Path.Combine("TestData", "policy.rego"), eps);
 
-        AssertPolicy.IsValid(policy);
+        AssertBundle.IsValid(policy);
     }
 
     [Theory]
@@ -85,7 +88,7 @@ public abstract class CompilerTests<T, TOptions>
         path ??= Path.Combine("TestData", "src.bundle.tar.gz");
         var policy = await compiler.CompileBundle(path, eps);
 
-        AssertPolicy.IsValid(policy);
+        AssertBundle.IsValid(policy);
     }
 
     [Fact]
@@ -175,6 +178,34 @@ public abstract class CompilerTests<T, TOptions>
             Path.Combine("TestData", "capabilities", "capabilities.json")
             );
 
-        AssertPolicy.IsValid(policy);
+        AssertBundle.IsValid(policy);
+    }
+
+    [Fact]
+    public async Task BundleWriterFile()
+    {
+        using var ms = new MemoryStream();
+
+        await using (var bw = new BundleWriter(ms))
+        {
+            bw.WriteEntry(TestHelpers.SimplePolicySource, "p1.rego");
+            bw.WriteEntry(TestHelpers.PolicySource("p2", "p2r"), "/tests/p2.rego");
+            bw.WriteEntry("{}", "/tests/data.json");
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        await File.WriteAllBytesAsync("policy.tar.gz", ms.ToArray());
+
+        var compiler = CreateCompiler();
+        var bundle = await compiler.CompileBundle("policy.tar.gz", TestHelpers.SimplePolicyEntrypoints);
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+
+        AssertBundle.Content(
+            bundle,
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            AssertBundle.HasNonEmptyData
+            );
     }
 }

@@ -1,1 +1,8 @@
 #nullable enable
+OpaDotNet.Compilation.Abstractions.BundleWriter
+OpaDotNet.Compilation.Abstractions.BundleWriter.BundleWriter(System.IO.Stream! stream) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.Dispose() -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threading.Tasks.ValueTask
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void

@@ -4,8 +4,12 @@ internal static class TestHelpers
 {
     public const string SimplePolicySource = """
         package example
-        import future.keywords.if
         default allow := false
+        """;
+
+    public static string PolicySource(string package, string rule) => $$"""
+        package {{package}}
+        default {{rule}} := false
         """;
 
     public static readonly string[] SimplePolicyEntrypoints = { "example/allow" };

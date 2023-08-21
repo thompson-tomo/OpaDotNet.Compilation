@@ -1,9 +1,13 @@
 ﻿using System.Formats.Tar;
 using System.IO.Compression;
+using System.Text;
+
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace OpaDotNet.Compilation.Tests.Common;
 
-public static class AssertPolicy
+public static class AssertBundle
 {
     public static void IsValid(Stream bundle, bool hasData = false)
     {
@@ -13,6 +17,90 @@ public static class AssertPolicy
 
         if (hasData)
             Assert.True(policy.Data.Length > 0);
+    }
+
+    public static bool HasEntry(TarEntry entry, string fileName)
+    {
+        Assert.NotNull(entry);
+
+        if (!string.Equals(entry.Name, fileName, StringComparison.Ordinal))
+            return false;
+
+        Assert.Equal(TarEntryType.RegularFile, entry.EntryType);
+        Assert.NotNull(entry.DataStream);
+        Assert.True(entry.DataStream.Length > 0);
+
+        return true;
+    }
+
+    public static bool HasNonEmptyData(TarEntry entry)
+    {
+        Assert.NotNull(entry);
+
+        if (!string.Equals(entry.Name, "/data.json", StringComparison.Ordinal))
+            return false;
+
+        Assert.Equal(TarEntryType.RegularFile, entry.EntryType);
+        Assert.NotNull(entry.DataStream);
+        Assert.True(entry.DataStream.Length > 0);
+
+        var buf = new byte[entry.DataStream.Length];
+        _ = entry.DataStream.Read(buf);
+
+        if (Encoding.UTF8.GetString(buf).StartsWith("{}"))
+            Assert.Fail("Expected non empty data.json");
+
+        return true;
+    }
+
+    public static void DumpBundle(Stream bundle, ITestOutputHelper output)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+
+        using var gzip = new GZipStream(bundle, CompressionMode.Decompress, true);
+        using var ms = new MemoryStream();
+
+        gzip.CopyTo(ms);
+        ms.Seek(0, SeekOrigin.Begin);
+
+        using var tr = new TarReader(ms);
+
+        while (tr.GetNextEntry() is { } entry)
+            output.WriteLine($"{entry.Name} [{entry.EntryType}]");
+
+        bundle.Seek(0, SeekOrigin.Begin);
+    }
+
+    public static void Content(Stream bundle, params Predicate<TarEntry>[] inspectors)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+
+        using var gzip = new GZipStream(bundle, CompressionMode.Decompress);
+        using var ms = new MemoryStream();
+
+        gzip.CopyTo(ms);
+        ms.Seek(0, SeekOrigin.Begin);
+
+        using var tr = new TarReader(ms);
+        var entries = new List<TarEntry>();
+
+        while (tr.GetNextEntry() is { } entry)
+            entries.Add(entry);
+
+        var i = 0;
+
+        foreach (var inspector in inspectors)
+        {
+            var hasMatch = entries.Any(p => inspector(p));
+
+            if (!hasMatch)
+            {
+                var content = string.Join(Environment.NewLine, entries.Select(p => p.Name));
+                Assert.Fail($"Inspector at index {i} didn't match any entry in the bundle.\n{content}");
+            }
+
+            i++;
+        }
     }
 }
 
