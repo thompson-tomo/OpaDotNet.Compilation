@@ -63,7 +63,10 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(bundlePath);
 
-        var path = Path.GetFullPath(bundlePath);
+        var path = bundlePath;
+
+        if (path.StartsWith("./") || path.StartsWith(".\\"))
+            path = path[2..];
 
         var result = Interop.Compile(
             path,
@@ -85,7 +88,10 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
 
-        var path = Path.GetFullPath(sourceFilePath);
+        var path = sourceFilePath;
+
+        if (path.StartsWith("./") || path.StartsWith(".\\"))
+            path = path[2..];
 
         var result = Interop.Compile(
             path,

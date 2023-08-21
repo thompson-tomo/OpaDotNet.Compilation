@@ -18,7 +18,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
     {
     }
 
-    protected override RegoCliCompiler CreateCompiler(RegoCliCompilerOptions? opts = null, ILoggerFactory? loggerFactory= null)
+    protected override RegoCliCompiler CreateCompiler(RegoCliCompilerOptions? opts = null, ILoggerFactory? loggerFactory = null)
     {
         return new RegoCliCompiler(
             opts == null ? null : new OptionsWrapper<RegoCliCompilerOptions>(opts),

@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Text;
 
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace OpaDotNet.Compilation.Tests.Common;
 

@@ -28,7 +28,12 @@ public abstract class CompilerTests<T, TOptions>
     [Theory]
     [InlineData("ex/test")]
     [InlineData(null)]
-    public async Task CompileFile(string? entrypoint)
+    [InlineData(null, "./TestData/policy.rego")]
+    [InlineData(null, "TestData/policy.rego")]
+    [InlineData(null, ".\\TestData\\policy.rego")]
+    [InlineData(null, "TestData\\policy.rego")]
+    [InlineData(null, "~TestData\\policy.rego")]
+    public async Task CompileFile(string? entrypoint, string? path = null)
     {
         var opts = new TOptions
         {
@@ -37,7 +42,15 @@ public abstract class CompilerTests<T, TOptions>
 
         var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new[] { entrypoint };
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var policy = await compiler.CompileFile(Path.Combine("TestData", "policy.rego"), eps);
+
+        path ??= Path.Combine("TestData", "policy.rego");
+
+        if (path.StartsWith("~"))
+            path = Path.Combine(AppContext.BaseDirectory, path[1..]);
+
+        var policy = await compiler.CompileFile(path, eps);
+
+        AssertBundle.DumpBundle(policy, OutputHelper);
 
         AssertBundle.IsValid(policy);
     }
@@ -46,6 +59,10 @@ public abstract class CompilerTests<T, TOptions>
     [InlineData("test1/hello")]
     [InlineData("test2/hello")]
     [InlineData("test1/hello", "./TestData/compile-bundle/example")]
+    [InlineData("test1/hello", "TestData/compile-bundle/example")]
+    [InlineData("test1/hello", ".\\TestData\\compile-bundle\\example")]
+    [InlineData("test1/hello", "TestData\\compile-bundle\\example")]
+    [InlineData("test1/hello", "~TestData\\compile-bundle\\example")]
     public async Task CompileBundle(string? entrypoint, string? path = null)
     {
         var opts = new TOptions
@@ -57,7 +74,13 @@ public abstract class CompilerTests<T, TOptions>
         var compiler = CreateCompiler(opts, LoggerFactory);
 
         path ??= Path.Combine("TestData", "compile-bundle", "example");
+
+        if (path.StartsWith("~"))
+            path = Path.Combine(AppContext.BaseDirectory, path[1..]);
+
         var policy = await compiler.CompileBundle(path, eps);
+
+        AssertBundle.DumpBundle(policy, OutputHelper);
 
         var bundle = TarGzHelper.ReadBundle(policy);
 

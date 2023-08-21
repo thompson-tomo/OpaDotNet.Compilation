@@ -67,8 +67,8 @@ public class RegoCliCompiler : IRegoCompiler
         // bundlePath can be directory or bundle archive.
         var bundleDirectory =
             File.GetAttributes(fullBundlePath).HasFlag(FileAttributes.Directory)
-            ? new DirectoryInfo(fullBundlePath)
-            : new FileInfo(fullBundlePath).Directory!;
+                ? new DirectoryInfo(fullBundlePath)
+                : new FileInfo(fullBundlePath).Directory!;
 
         var outDir = new DirectoryInfo(_options.Value.OutputPath ?? bundleDirectory.FullName);
         var outputPath = outDir.FullName;
@@ -103,10 +103,15 @@ public class RegoCliCompiler : IRegoCompiler
             capabilitiesFile = capsFile?.FullName ?? fi.FullName;
         }
 
+        var sp = fullBundlePath;
+
+        if (!Path.IsPathRooted(bundlePath))
+            sp = Path.GetRelativePath(AppContext.BaseDirectory, bundlePath);
+
         var args = new OpaCliBuildArgs
         {
             IsBundle = true,
-            SourcePath = fullBundlePath,
+            SourcePath = sp,
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
@@ -146,9 +151,14 @@ public class RegoCliCompiler : IRegoCompiler
         var outputPath = outDir.FullName;
         var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
 
+        var sp = sourceFilePath;
+
+        if (!Path.IsPathRooted(sourceFilePath))
+            sp = Path.GetRelativePath(AppContext.BaseDirectory, sourceFilePath);
+
         var args = new OpaCliBuildArgs
         {
-            SourcePath = sourceFile.FullName,
+            SourcePath = sp,
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
