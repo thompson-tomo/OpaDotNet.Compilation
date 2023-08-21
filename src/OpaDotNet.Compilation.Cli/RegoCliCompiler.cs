@@ -60,6 +60,7 @@ public class RegoCliCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(bundlePath);
 
+        bundlePath = NormalizePath(bundlePath);
         using var scope = _logger.BeginScope("Bundle {Path}", bundlePath);
 
         var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
@@ -113,7 +114,7 @@ public class RegoCliCompiler : IRegoCompiler
         var args = new OpaCliBuildArgs
         {
             IsBundle = true,
-            SourcePath = NormalizePath(sp),
+            SourcePath = sp,
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
@@ -142,6 +143,7 @@ public class RegoCliCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
 
+        sourceFilePath = NormalizePath(sourceFilePath);
         using var scope = _logger.BeginScope("File {Path}", sourceFilePath);
 
         var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
@@ -162,7 +164,7 @@ public class RegoCliCompiler : IRegoCompiler
 
         var args = new OpaCliBuildArgs
         {
-            SourcePath = NormalizePath(sp),
+            SourcePath = sp,
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
