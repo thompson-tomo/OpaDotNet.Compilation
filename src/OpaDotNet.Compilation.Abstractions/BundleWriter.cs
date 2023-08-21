@@ -41,6 +41,8 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
         _writer = new TarWriter(zip);
     }
 
+    private static string NormalizePath(string path) => "/" + path.Replace("\\", "/").TrimStart('/');
+
     /// <summary>
     /// Writes string content into bundle.
     /// </summary>
@@ -82,9 +84,13 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentException.ThrowIfNullOrEmpty(path);
 
-        var normPath = "/" + path.Replace("\\", "/").TrimStart('/');
+        if (Path.IsPathRooted(path))
+        {
+            if (Path.GetPathRoot(path)?[0] != Path.DirectorySeparatorChar)
+                path = path[2..];
+        }
 
-        var entry = new PaxTarEntry(TarEntryType.RegularFile, normPath)
+        var entry = new PaxTarEntry(TarEntryType.RegularFile, NormalizePath(path))
         {
             DataStream = stream,
         };

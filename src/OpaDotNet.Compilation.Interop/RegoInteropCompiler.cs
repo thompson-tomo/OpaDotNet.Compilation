@@ -33,6 +33,8 @@ public class RegoInteropCompiler : IRegoCompiler
         _logger = logger ?? NullLogger<RegoInteropCompiler>.Instance;
     }
 
+    private static string NormalizePath(string path) => path.Replace("\\", "/");
+
     /// <inheritdoc />
     public Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
@@ -69,7 +71,7 @@ public class RegoInteropCompiler : IRegoCompiler
             path = path[2..];
 
         var result = Interop.Compile(
-            path,
+            NormalizePath(path),
             true,
             _options.Value,
             entrypoints,
@@ -94,7 +96,7 @@ public class RegoInteropCompiler : IRegoCompiler
             path = path[2..];
 
         var result = Interop.Compile(
-            path,
+            NormalizePath(path),
             false,
             _options.Value,
             entrypoints,

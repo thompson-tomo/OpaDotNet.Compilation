@@ -219,6 +219,7 @@ public abstract class CompilerTests<T, TOptions>
             bw.WriteEntry(TestHelpers.SimplePolicySource, "p1.rego");
             bw.WriteEntry(inStream, "/tests/p2.rego");
             bw.WriteEntry("{}"u8, "/tests/data.json");
+            bw.WriteEntry("{}"u8, @"c:\a\data.json");
         }
 
         ms.Seek(0, SeekOrigin.Begin);

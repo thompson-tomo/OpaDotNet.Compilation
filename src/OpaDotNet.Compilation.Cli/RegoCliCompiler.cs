@@ -42,6 +42,8 @@ public class RegoCliCompiler : IRegoCompiler
         ? "opa"
         : _options.Value.OpaToolPath;
 
+    private static string NormalizePath(string path) => path.Replace("\\", "/");
+
     /// <inheritdoc />
     public async Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
@@ -111,7 +113,7 @@ public class RegoCliCompiler : IRegoCompiler
         var args = new OpaCliBuildArgs
         {
             IsBundle = true,
-            SourcePath = sp,
+            SourcePath = NormalizePath(sp),
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
@@ -160,7 +162,7 @@ public class RegoCliCompiler : IRegoCompiler
 
         var args = new OpaCliBuildArgs
         {
-            SourcePath = sp,
+            SourcePath = NormalizePath(sp),
             OutputFile = outputFileName,
             Entrypoints = entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
