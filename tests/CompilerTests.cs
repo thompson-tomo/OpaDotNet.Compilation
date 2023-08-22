@@ -223,7 +223,7 @@ public abstract class CompilerTests<T, TOptions>
         }
 
         bundle.Seek(0, SeekOrigin.Begin);
-        using var capsFs = File.OpenRead(Path.Combine("TestData", "capabilities", "capabilities.json"));
+        await using var capsFs = File.OpenRead(Path.Combine("TestData", "capabilities", "capabilities.json"));
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
@@ -263,7 +263,14 @@ public abstract class CompilerTests<T, TOptions>
         var opts = new TOptions
         {
             PruneUnused = true,
+            Debug = true,
+            OutputPath = "./tmp",
         };
+
+        var tmpDir = new DirectoryInfo(opts.OutputPath);
+
+        if (!tmpDir.Exists)
+            tmpDir.Create();
 
         var compiler = CreateCompiler(opts, LoggerFactory);
         var bundle = await compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints);

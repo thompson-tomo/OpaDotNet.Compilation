@@ -22,10 +22,18 @@ import (
 			int debug;
 			int optimizationLevel;
 			int pruneUnused;
+			char* tempDir;
+			char* revision;
 		};
 
 		struct OpaFsBuildParams {
 			char* source;
+			struct OpaBuildParams params;
+		};
+
+		struct OpaBytesBuildParams {
+			unsigned char* bytes;
+			int bytesLen;
 			struct OpaBuildParams params;
 		};
 
@@ -46,6 +54,7 @@ import (
 	"github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/version"
 	"io"
+	"os"
 	"unsafe"
 )
 
@@ -56,7 +65,7 @@ var opaVersion *C.struct_OpaVersion
 var defaultCaps *ast.Capabilities
 
 func init() {
-	// We will be leaking this memory, but it is initialized only once so it should not be a big deal.
+	// We will be leaking this memory, but it is allocated only once, so it should not be a big deal.
 	opaVersion = (*C.struct_OpaVersion)(C.malloc(C.sizeof_struct_OpaVersion))
 	C.memset(unsafe.Pointer(opaVersion), 0, C.sizeof_struct_OpaVersion)
 
@@ -78,11 +87,74 @@ type buildParams struct {
 	debug               bool
 	optimizationLevel   int
 	pruneUnused         bool
+	revision            string
 }
 
 //export OpaGetVersion
 func OpaGetVersion() *C.struct_OpaVersion {
 	return opaVersion
+}
+
+//export OpaBuildFromBytes
+func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C.struct_OpaBuildResult) int {
+	var logger logging.Logger
+	loggerBuffer := bytes.NewBuffer(nil)
+
+	if byteParams.params.debug == 0 {
+		logger = logging.NewNoOpLogger()
+	} else {
+		sl := logging.New()
+		sl.SetLevel(logging.Debug)
+		sl.SetOutput(loggerBuffer)
+		logger = sl
+	}
+
+	*buildResult = (*C.struct_OpaBuildResult)(C.malloc(C.sizeof_struct_OpaBuildResult))
+	C.memset(unsafe.Pointer(*buildResult), 0, C.sizeof_struct_OpaBuildResult)
+	logger.Debug("Result pointer: %p", *buildResult)
+
+	// OPA does not support building from byte[] yet. Creating temporary file.
+	dir := "./"
+
+	if byteParams.params.tempDir != nil {
+		dir = C.GoString(byteParams.params.tempDir)
+	}
+
+	f, err := os.CreateTemp(dir, "policy.*.rego")
+
+	if err != nil {
+		opaMakeResult(*buildResult, nil, loggerBuffer, err)
+		return -2
+	}
+
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+
+	defer func(name string) {
+		_ = os.Remove(name)
+	}(f.Name())
+
+	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
+
+	logger.Debug("Saving source into temporary file %s", f.Name())
+	_, err = f.Write(buf)
+	if err != nil {
+		opaMakeResult(*buildResult, nil, loggerBuffer, err)
+		return -3
+	}
+
+	bp := opaMakeBuildParams(byteParams.params)
+	bp.source = f.Name()
+
+	logger.Debug("Compiler version: %s", version.Version)
+	//logger.Debug("Build params: %v", bp)
+
+	resultBytes, err := opaBuild(bp, loggerBuffer)
+
+	opaMakeResult(*buildResult, resultBytes, loggerBuffer, err)
+
+	return 0
 }
 
 //export OpaBuildFromFs
@@ -99,55 +171,20 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 		logger = sl
 	}
 
-	eps := make([]string, 0, fsParams.params.entrypointsLen)
+	*buildResult = (*C.struct_OpaBuildResult)(C.malloc(C.sizeof_struct_OpaBuildResult))
+	C.memset(unsafe.Pointer(*buildResult), 0, C.sizeof_struct_OpaBuildResult)
 
-	if fsParams.params.entrypoints != nil {
-		var pEps **C.char = fsParams.params.entrypoints
-
-		for _, entrypoint := range unsafe.Slice(pEps, int(fsParams.params.entrypointsLen)) {
-			ep := C.GoString(entrypoint)
-
-			if len(ep) > 0 {
-				eps = append(eps, ep)
-			}
-		}
-	}
-
-	bp := &buildParams{
-		source:              C.GoString(fsParams.source),
-		capabilitiesJSON:    C.GoString(fsParams.params.capabilitiesJSON),
-		capabilitiesVersion: C.GoString(fsParams.params.capabilitiesVersion),
-		target:              C.GoString(fsParams.params.target),
-		bundleMode:          fsParams.params.bundleMode > 0,
-		entrypoints:         eps,
-		debug:               fsParams.params.debug > 0,
-		optimizationLevel:   int(fsParams.params.optimizationLevel),
-		pruneUnused:         fsParams.params.pruneUnused > 0,
-	}
+	bp := opaMakeBuildParams(fsParams.params)
+	bp.source = C.GoString(fsParams.source)
 
 	logger.Debug("Compiler version: %s", version.Version)
 	//logger.Debug("Build params: %v", bp)
 
 	resultBytes, err := opaBuild(bp, loggerBuffer)
 
-	*buildResult = (*C.struct_OpaBuildResult)(C.malloc(C.sizeof_struct_OpaBuildResult))
-	C.memset(unsafe.Pointer(*buildResult), 0, C.sizeof_struct_OpaBuildResult)
-
 	logger.Debug("Result pointer: %p", *buildResult)
 
-	if bp.debug {
-		(**buildResult).log = C.CString(loggerBuffer.String())
-	}
-
-	if err != nil {
-		(**buildResult).errors = C.CString(err.Error())
-		return -1
-	}
-
-	bts := resultBytes.Bytes()
-
-	(**buildResult).resultLen = C.int(len(bts))
-	(**buildResult).result = (*C.uchar)(C.CBytes(bts))
+	opaMakeResult(*buildResult, resultBytes, loggerBuffer, err)
 
 	return 0
 }
@@ -162,6 +199,50 @@ func OpaFree(ptr *C.struct_OpaBuildResult) {
 	C.free(unsafe.Pointer((*ptr).errors))
 	C.free(unsafe.Pointer((*ptr).log))
 	C.free(unsafe.Pointer(ptr))
+}
+
+func opaMakeResult(buildResult *C.struct_OpaBuildResult, bytes *bytes.Buffer, log *bytes.Buffer, err error) {
+	if log != nil {
+		(*buildResult).log = C.CString(log.String())
+	}
+
+	if err != nil {
+		(*buildResult).errors = C.CString(err.Error())
+	}
+
+	if bytes != nil {
+		bts := bytes.Bytes()
+		(*buildResult).resultLen = C.int(len(bts))
+		(*buildResult).result = (*C.uchar)(C.CBytes(bts))
+	}
+}
+
+func opaMakeBuildParams(params C.struct_OpaBuildParams) *buildParams {
+	eps := make([]string, 0, params.entrypointsLen)
+
+	if params.entrypoints != nil {
+		var pEps **C.char = params.entrypoints
+
+		for _, entrypoint := range unsafe.Slice(pEps, int(params.entrypointsLen)) {
+			ep := C.GoString(entrypoint)
+
+			if len(ep) > 0 {
+				eps = append(eps, ep)
+			}
+		}
+	}
+
+	return &buildParams{
+		capabilitiesJSON:    C.GoString(params.capabilitiesJSON),
+		capabilitiesVersion: C.GoString(params.capabilitiesVersion),
+		target:              C.GoString(params.target),
+		bundleMode:          params.bundleMode > 0,
+		entrypoints:         eps,
+		debug:               params.debug > 0,
+		optimizationLevel:   int(params.optimizationLevel),
+		pruneUnused:         params.pruneUnused > 0,
+		revision:            C.GoString(params.revision),
+	}
 }
 
 func opaGetCaps(pathOrVersion string, isFile bool) (*ast.Capabilities, error) {
@@ -239,6 +320,10 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 
 	if params.debug {
 		compiler.WithDebug(loggerBuffer)
+	}
+
+	if params.revision != "" {
+		compiler.WithRevision(params.revision)
 	}
 
 	err := compiler.Build(context.Background())

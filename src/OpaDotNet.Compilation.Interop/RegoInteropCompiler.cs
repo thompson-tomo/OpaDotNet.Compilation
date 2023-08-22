@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Text;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -112,7 +111,8 @@ public class RegoInteropCompiler : IRegoCompiler
             false,
             _options.Value,
             entrypoints,
-            logger: _logger
+            null,
+            _logger
             );
 
         return Task.FromResult(result);
@@ -126,23 +126,19 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentException.ThrowIfNullOrEmpty(source);
 
-        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
-        var sourceFile = new FileInfo(Path.Combine(path, $"{Guid.NewGuid()}.rego"));
-        await File.WriteAllTextAsync(sourceFile.FullName, source, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
+        using var bundle = new MemoryStream();
+        var bw = new BundleWriter(bundle);
 
-        try
-        {
-            return await CompileFile(sourceFile.FullName, entrypoints, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            if (!_options.Value.PreserveBuildArtifacts)
-                File.Delete(sourceFile.FullName);
-        }
+        await using (bw.ConfigureAwait(false))
+            bw.WriteEntry(source, "policy.rego");
+
+        bundle.Seek(0, SeekOrigin.Begin);
+
+        return await CompileStream(bundle, entrypoints, null, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<Stream> CompileStream(
+    public Task<Stream> CompileStream(
         Stream bundle,
         IEnumerable<string>? entrypoints = null,
         Stream? capabilitiesJson = null,
@@ -150,34 +146,15 @@ public class RegoInteropCompiler : IRegoCompiler
     {
         ArgumentNullException.ThrowIfNull(bundle);
 
-        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
-        var sourceFile = new FileInfo(Path.Combine(path, $"{Guid.NewGuid()}.tar.gz"));
+        var result = Interop.Compile(
+            bundle,
+            true,
+            _options.Value,
+            entrypoints,
+            capabilitiesJson,
+            _logger
+            );
 
-        try
-        {
-            // OPA SDK does not support building from stream yet.
-            var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew, FileAccess.Write);
-
-            await using (fs.ConfigureAwait(false))
-            {
-                await bundle.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = Interop.Compile(
-                fs.Name,
-                true,
-                _options.Value,
-                entrypoints,
-                capabilitiesJson,
-                _logger
-                );
-
-            return result;
-        }
-        finally
-        {
-            if (!_options.Value.PreserveBuildArtifacts && sourceFile.Exists)
-                sourceFile.Delete();
-        }
+        return Task.FromResult(result);
     }
 }

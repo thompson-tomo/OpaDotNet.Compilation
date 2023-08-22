@@ -14,17 +14,23 @@ internal static class Interop
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct OpaVersion
     {
-        [MarshalAs(UnmanagedType.LPStr)]
         public string LibVersion;
 
-        [MarshalAs(UnmanagedType.LPStr)]
         public string GoVersion;
 
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string Commit;
+        public string? Commit;
 
-        [MarshalAs(UnmanagedType.LPStr)]
         public string Platform;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    private struct OpaBytesBuildParams
+    {
+        public nint Bytes;
+
+        public int BytesLen;
+
+        public OpaBuildParams Params;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -58,6 +64,10 @@ internal static class Interop
 
         [MarshalAs(UnmanagedType.I1)]
         public bool PruneUnused;
+
+        public string? TempDir;
+
+        public string? Revision;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -67,11 +77,9 @@ internal static class Interop
 
         public int ResultLen;
 
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string Errors;
+        public string? Errors;
 
-        [MarshalAs(UnmanagedType.LPStr)]
-        public string Log;
+        public string? Log;
     }
 
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -80,20 +88,25 @@ internal static class Interop
     [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
     private static extern int OpaBuildFromFs(
         [In] ref OpaFsBuildParams buildParams,
-        out nint buildResult);
+        out nint result);
+
+    [DllImport(Lib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int OpaBuildFromBytes(
+        [In] ref OpaBytesBuildParams buildParams,
+        out nint result);
 
     [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
     private static extern void OpaFree(nint buildResult);
 
-    public static Stream Compile(
-        string source,
+    private static Stream Compile(
+        Func<OpaBuildParams, (int, nint)> compile,
         bool isBundle,
         RegoCompilerOptions options,
-        IEnumerable<string>? entrypoints = null,
-        Stream? capabilitiesJson = null,
-        ILogger? logger = null)
+        IEnumerable<string>? entrypoints,
+        Stream? capabilitiesJson,
+        ILogger? logger)
     {
-        ArgumentException.ThrowIfNullOrEmpty(source);
+        ArgumentNullException.ThrowIfNull(compile);
         ArgumentNullException.ThrowIfNull(options);
 
         logger ??= NullLogger.Instance;
@@ -119,6 +132,7 @@ internal static class Interop
                 Target = "wasm",
                 Debug = options.Debug,
                 PruneUnused = options.PruneUnused,
+                TempDir = Path.GetFullPath(options.OutputPath ?? "./"),
             };
 
             if (entrypoints != null)
@@ -140,16 +154,10 @@ internal static class Interop
 
             try
             {
-                var fsBuildParams = new OpaFsBuildParams
-                {
-                    Source = source,
-                    Params = buildParams,
-                };
-
-                var result = OpaBuildFromFs(ref fsBuildParams, out bundle);
+                (var result, bundle) = compile(buildParams);
 
                 if (bundle == nint.Zero)
-                    throw new RegoCompilationException(source, "Compilation failed");
+                    throw new RegoCompilationException("Compilation failed");
 
                 var resultBundle = Marshal.PtrToStructure<OpaBuildResult>(bundle);
 
@@ -157,13 +165,13 @@ internal static class Interop
                     logger.LogDebug("{BuildLog}", resultBundle.Log);
 
                 if (!string.IsNullOrWhiteSpace(resultBundle.Errors))
-                    throw new RegoCompilationException(source, resultBundle.Errors);
+                    throw new RegoCompilationException(resultBundle.Errors);
 
                 if (result != 0)
-                    throw new RegoCompilationException(source, "Unknown compilation error");
+                    throw new RegoCompilationException($"Compilation error {result}");
 
                 if (resultBundle.ResultLen == 0 || resultBundle.Result == nint.Zero)
-                    throw new RegoCompilationException(source, "Bad result");
+                    throw new RegoCompilationException("Bad result");
 
                 var bundleBytes = new byte[resultBundle.ResultLen];
                 Marshal.Copy(resultBundle.Result, bundleBytes, 0, resultBundle.ResultLen);
@@ -186,5 +194,78 @@ internal static class Interop
                 Marshal.FreeCoTaskMem(pEntrypoints);
             }
         }
+    }
+
+    public static Stream Compile(
+        string source,
+        bool isBundle,
+        RegoCompilerOptions options,
+        IEnumerable<string>? entrypoints,
+        Stream? capabilitiesJson,
+        ILogger? logger)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(source);
+        ArgumentNullException.ThrowIfNull(options);
+
+        static (int, nint) CompileFunc(string source, OpaBuildParams buildParams)
+        {
+            var fsBuildParams = new OpaFsBuildParams
+            {
+                Source = source,
+                Params = buildParams,
+            };
+
+            var result = OpaBuildFromFs(ref fsBuildParams, out var bundle);
+            return (result, bundle);
+        }
+
+        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, logger);
+    }
+
+    public static Stream Compile(
+        Stream source,
+        bool isBundle,
+        RegoCompilerOptions options,
+        IEnumerable<string>? entrypoints,
+        Stream? capabilitiesJson,
+        ILogger? logger)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(options);
+
+        static (int, nint) CompileFunc(Stream source, OpaBuildParams buildParams)
+        {
+            var bytes = nint.Zero;
+
+            try
+            {
+                var len = (int)source.Length;
+                bytes = Marshal.AllocCoTaskMem(len);
+
+                // It's possible to do this without unsafe code but it requires creating intermediate array
+                // and extra copying. And not that this option would be safer.
+                unsafe
+                {
+                    var b = new Span<byte>(bytes.ToPointer(), len);
+                    _ = source.Read(b);
+                }
+
+                var bytesBuildParams = new OpaBytesBuildParams
+                {
+                    Bytes = bytes,
+                    BytesLen = len,
+                    Params = buildParams,
+                };
+
+                var result = OpaBuildFromBytes(ref bytesBuildParams, out var bundle);
+                return (result, bundle);
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(bytes);
+            }
+        }
+
+        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, logger);
     }
 }
