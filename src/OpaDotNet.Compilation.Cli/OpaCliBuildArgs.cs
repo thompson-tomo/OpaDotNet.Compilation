@@ -1,10 +1,13 @@
 ﻿using System.Text;
 
+using JetBrains.Annotations;
+
 namespace OpaDotNet.Compilation.Cli;
 
+[PublicAPI]
 internal class OpaCliBuildArgs
 {
-    private string Type => "wasm";
+    private static string Type => "wasm";
 
     public required string OutputFile { get; init; }
 
