@@ -1,6 +1,7 @@
 ﻿using System.Formats.Tar;
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 
 using JetBrains.Annotations;
 
@@ -33,12 +34,16 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
     /// Creates new instance of <see cref="BundleWriter"/>.
     /// </summary>
     /// <param name="stream">Stream to write bundle to.</param>
-    public BundleWriter(Stream stream)
+    /// <param name="manifest">Policy bundle manifest.</param>
+    public BundleWriter(Stream stream, BundleManifest? manifest = null)
     {
         ArgumentNullException.ThrowIfNull(stream);
 
         var zip = new GZipStream(stream, CompressionMode.Compress, true);
         _writer = new TarWriter(zip);
+
+        if (manifest != null)
+            WriteEntry(JsonSerializer.Serialize(manifest), ".manifest");
     }
 
     private static string NormalizePath(string path) => "/" + path.Replace("\\", "/").TrimStart('/');

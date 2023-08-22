@@ -246,7 +246,13 @@ public abstract class CompilerTests<T, TOptions>
     {
         using var ms = new MemoryStream();
 
-        await using (var bw = new BundleWriter(ms))
+        var manifest = new BundleManifest
+        {
+            Revision = "test-2",
+            Metadata = { { "source", "test" } },
+        };
+
+        await using (var bw = new BundleWriter(ms, manifest))
         {
             using var inStream = new MemoryStream();
             inStream.Write(Encoding.UTF8.GetBytes(TestHelpers.PolicySource("p2", "p2r")));
@@ -280,6 +286,7 @@ public abstract class CompilerTests<T, TOptions>
         AssertBundle.Content(
             bundle,
             p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.HasEntry(p, "/.manifest"),
             AssertBundle.HasNonEmptyData
             );
     }
