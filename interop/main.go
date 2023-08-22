@@ -119,7 +119,7 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 		dir = C.GoString(byteParams.params.tempDir)
 	}
 
-	f, err := os.CreateTemp(dir, "policy.*.rego")
+	f, err := os.CreateTemp(dir, "policy.*.tar.gz")
 
 	if err != nil {
 		opaMakeResult(*buildResult, nil, loggerBuffer, err)
