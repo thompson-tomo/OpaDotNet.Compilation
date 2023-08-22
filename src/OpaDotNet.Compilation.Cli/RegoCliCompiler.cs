@@ -216,8 +216,8 @@ public class RegoCliCompiler : IRegoCompiler
             var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew);
             await using var _ = fs.ConfigureAwait(false);
 
-            await bundle.CopyToAsync(fs, cancellationToken);
-            await fs.FlushAsync(cancellationToken);
+            await bundle.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+            await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             FileStream? capsFs = null;
 
@@ -226,8 +226,8 @@ public class RegoCliCompiler : IRegoCompiler
                 capsFs = new FileStream(capsFile.FullName, FileMode.CreateNew);
                 await using var __ = capsFs.ConfigureAwait(false);
 
-                await capabilitiesJson.CopyToAsync(capsFs, cancellationToken);
-                await capsFs.FlushAsync(cancellationToken);
+                await capabilitiesJson.CopyToAsync(capsFs, cancellationToken).ConfigureAwait(false);
+                await capsFs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return await CompileBundle(

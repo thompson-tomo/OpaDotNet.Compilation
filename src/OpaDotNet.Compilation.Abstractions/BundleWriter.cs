@@ -112,6 +112,6 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        await _writer.DisposeAsync();
+        await _writer.DisposeAsync().ConfigureAwait(false);
     }
 }
