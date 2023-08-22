@@ -52,4 +52,20 @@ public interface IRegoCompiler
         string source,
         IEnumerable<string>? entrypoints = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compiles OPA bundle from rego bundle stream.
+    /// </summary>
+    /// <param name="bundle">Rego bundle stream.</param>
+    /// <param name="entrypoints">Which documents (entrypoints) will be queried when asking for policy decisions.</param>
+    /// <param name="capabilitiesJson">
+    /// Capabilities json that defines the built-in functions and other language features that policies may depend on.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Compiled OPA bundle stream.</returns>
+    Task<Stream> CompileStream(
+        Stream bundle,
+        IEnumerable<string>? entrypoints = null,
+        Stream? capabilitiesJson = null,
+        CancellationToken cancellationToken = default);
 }

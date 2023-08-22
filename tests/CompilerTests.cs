@@ -206,6 +206,42 @@ public abstract class CompilerTests<T, TOptions>
     }
 
     [Fact]
+    public async Task BundleWriterMergeCapabilities()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            Debug = true,
+        };
+
+        using var bundle = new MemoryStream();
+
+        await using (var bw = new BundleWriter(bundle))
+        {
+            var rego = await File.ReadAllBytesAsync(Path.Combine("TestData", "capabilities", "capabilities.rego"));
+            bw.WriteEntry(rego, "capabilities.rego");
+        }
+
+        bundle.Seek(0, SeekOrigin.Begin);
+        using var capsFs = File.OpenRead(Path.Combine("TestData", "capabilities", "capabilities.json"));
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var policy = await compiler.CompileStream(
+            bundle,
+            new[] { "capabilities/f" },
+            capsFs
+            );
+
+        AssertBundle.DumpBundle(policy, OutputHelper);
+
+        AssertBundle.Content(
+            policy,
+            p => AssertBundle.HasEntry(p, "/policy.wasm")
+            );
+    }
+
+    [Fact]
     public async Task BundleWriterFile()
     {
         using var ms = new MemoryStream();
@@ -224,18 +260,13 @@ public abstract class CompilerTests<T, TOptions>
 
         ms.Seek(0, SeekOrigin.Begin);
 
-        if (File.Exists("policy.tar.gz"))
-            File.Delete("policy.tar.gz");
-
-        await File.WriteAllBytesAsync("policy.tar.gz", ms.ToArray());
-
         var opts = new TOptions
         {
             PruneUnused = true,
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var bundle = await compiler.CompileBundle("policy.tar.gz", TestHelpers.SimplePolicyEntrypoints);
+        var bundle = await compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints);
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 

@@ -197,6 +197,58 @@ public class RegoCliCompiler : IRegoCompiler
         }
     }
 
+    /// <inheritdoc />
+    public async Task<Stream> CompileStream(
+        Stream bundle,
+        IEnumerable<string>? entrypoints = null,
+        Stream? capabilitiesJson = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+
+        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
+        var fileName = Guid.NewGuid();
+        var sourceFile = new FileInfo(Path.Combine(path, $"{fileName}.tar.gz"));
+        var capsFile = new FileInfo(Path.Combine(path, $"{fileName}.json"));
+
+        try
+        {
+            var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew);
+            await using var _ = fs.ConfigureAwait(false);
+
+            await bundle.CopyToAsync(fs, cancellationToken);
+            await fs.FlushAsync(cancellationToken);
+
+            FileStream? capsFs = null;
+
+            if (capabilitiesJson != null)
+            {
+                capsFs = new FileStream(capsFile.FullName, FileMode.CreateNew);
+                await using var __ = capsFs.ConfigureAwait(false);
+
+                await capabilitiesJson.CopyToAsync(capsFs, cancellationToken);
+                await capsFs.FlushAsync(cancellationToken);
+            }
+
+            return await CompileBundle(
+                fs.Name,
+                entrypoints,
+                capsFs?.Name,
+                cancellationToken
+                ).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (!_options.Value.PreserveBuildArtifacts)
+            {
+                sourceFile.Delete();
+
+                if (capsFile.Exists)
+                    capsFile.Delete();
+            }
+        }
+    }
+
     private static async Task<FileInfo> MergeCapabilities(
         OpaCliWrapper cli,
         string outputPath,

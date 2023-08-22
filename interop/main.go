@@ -14,7 +14,7 @@ import (
 
 		struct OpaBuildParams {
 		    char* target;
-		    char* capabilitiesFile;
+		    char* capabilitiesJSON;
 		    char* capabilitiesVersion;
 		    int bundleMode;
 		    char** entrypoints;
@@ -70,7 +70,7 @@ func init() {
 
 type buildParams struct {
 	source              string
-	capabilitiesFile    string
+	capabilitiesJSON    string
 	capabilitiesVersion string
 	target              string
 	bundleMode          bool
@@ -115,7 +115,7 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 
 	bp := &buildParams{
 		source:              C.GoString(fsParams.source),
-		capabilitiesFile:    C.GoString(fsParams.params.capabilitiesFile),
+		capabilitiesJSON:    C.GoString(fsParams.params.capabilitiesJSON),
 		capabilitiesVersion: C.GoString(fsParams.params.capabilitiesVersion),
 		target:              C.GoString(fsParams.params.target),
 		bundleMode:          fsParams.params.bundleMode > 0,
@@ -126,7 +126,7 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 	}
 
 	logger.Debug("Compiler version: %s", version.Version)
-	logger.Debug("Build params: %v", bp)
+	//logger.Debug("Build params: %v", bp)
 
 	resultBytes, err := opaBuild(bp, loggerBuffer)
 
@@ -194,13 +194,13 @@ func opaMergeCaps(a *ast.Capabilities, b *ast.Capabilities) *ast.Capabilities {
 func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error) {
 	buf := bytes.NewBuffer(nil)
 
-	var fileCaps *ast.Capabilities = nil
+	var jsonCaps *ast.Capabilities = nil
 	var verCaps *ast.Capabilities = nil
 	var caps *ast.Capabilities
 	var capsErr error
 
-	if len(params.capabilitiesFile) > 0 {
-		fileCaps, capsErr = opaGetCaps(params.capabilitiesFile, true)
+	if len(params.capabilitiesJSON) > 0 {
+		jsonCaps, capsErr = ast.LoadCapabilitiesJSON(bytes.NewBufferString(params.capabilitiesJSON))
 		if capsErr != nil {
 			return nil, capsErr
 		}
@@ -213,15 +213,15 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		}
 	}
 
-	if fileCaps == nil && verCaps == nil {
+	if jsonCaps == nil && verCaps == nil {
 		caps = defaultCaps
 	} else {
-		if fileCaps == nil {
+		if jsonCaps == nil {
 			caps = verCaps
 		} else if verCaps == nil {
-			caps = fileCaps
+			caps = jsonCaps
 		} else {
-			caps = opaMergeCaps(fileCaps, verCaps)
+			caps = opaMergeCaps(jsonCaps, verCaps)
 		}
 	}
 

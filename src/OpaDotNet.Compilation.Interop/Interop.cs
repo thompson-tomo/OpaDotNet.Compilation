@@ -40,7 +40,7 @@ internal static class Interop
     {
         public string Target;
 
-        public string? CapabilitiesFile;
+        public string? CapabilitiesJson;
 
         public string? CapabilitiesVersion;
 
@@ -90,7 +90,7 @@ internal static class Interop
         bool isBundle,
         RegoCompilerOptions options,
         IEnumerable<string>? entrypoints = null,
-        string? capabilitiesFile = null,
+        Stream? capabilitiesJson = null,
         ILogger? logger = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(source);
@@ -103,10 +103,18 @@ internal static class Interop
 
         try
         {
+            string? caps = null;
+
+            if (capabilitiesJson != null)
+            {
+                using var sr = new StreamReader(capabilitiesJson);
+                caps = sr.ReadToEnd();
+            }
+
             var buildParams = new OpaBuildParams
             {
                 CapabilitiesVersion = options.CapabilitiesVersion,
-                CapabilitiesFile = capabilitiesFile,
+                CapabilitiesJson = caps,
                 BundleMode = isBundle,
                 Target = "wasm",
                 Debug = options.Debug,

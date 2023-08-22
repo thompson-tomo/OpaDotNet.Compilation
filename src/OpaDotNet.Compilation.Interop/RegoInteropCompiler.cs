@@ -70,16 +70,28 @@ public class RegoInteropCompiler : IRegoCompiler
         if (path.StartsWith("./") || path.StartsWith(".\\"))
             path = path[2..];
 
-        var result = Interop.Compile(
-            NormalizePath(path),
-            true,
-            _options.Value,
-            entrypoints,
-            capabilitiesFilePath,
-            _logger
-            );
+        Stream? caps = null;
 
-        return Task.FromResult(result);
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(capabilitiesFilePath))
+                caps = new FileStream(capabilitiesFilePath, FileMode.Open);
+
+            var result = Interop.Compile(
+                NormalizePath(path),
+                true,
+                _options.Value,
+                entrypoints,
+                caps,
+                _logger
+                );
+
+            return Task.FromResult(result);
+        }
+        finally
+        {
+            caps?.Dispose();
+        }
     }
 
     /// <inheritdoc />
@@ -126,6 +138,46 @@ public class RegoInteropCompiler : IRegoCompiler
         {
             if (!_options.Value.PreserveBuildArtifacts)
                 File.Delete(sourceFile.FullName);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Stream> CompileStream(
+        Stream bundle,
+        IEnumerable<string>? entrypoints = null,
+        Stream? capabilitiesJson = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+
+        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
+        var sourceFile = new FileInfo(Path.Combine(path, $"{Guid.NewGuid()}.tar.gz"));
+
+        try
+        {
+            // OPA SDK does not support building from stream yet.
+            var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew, FileAccess.Write);
+
+            await using (fs.ConfigureAwait(false))
+            {
+                await bundle.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+            }
+
+            var result = Interop.Compile(
+                fs.Name,
+                true,
+                _options.Value,
+                entrypoints,
+                capabilitiesJson,
+                _logger
+                );
+
+            return result;
+        }
+        finally
+        {
+            if (!_options.Value.PreserveBuildArtifacts && sourceFile.Exists)
+                sourceFile.Delete();
         }
     }
 }
