@@ -6,19 +6,19 @@ import (
 		#include <string.h>
 
 		struct OpaVersion {
-		    char* libVersion;
-		    char* goVersion;
-		    char* commit;
-		    char* platform;
+			char* libVersion;
+			char* goVersion;
+			char* commit;
+			char* platform;
 		};
 
 		struct OpaBuildParams {
-		    char* target;
-		    char* capabilitiesJSON;
-		    char* capabilitiesVersion;
-		    int bundleMode;
-		    char** entrypoints;
-		    int entrypointsLen;
+			char* target;
+			char* capabilitiesJSON;
+			char* capabilitiesVersion;
+			int bundleMode;
+			char** entrypoints;
+			int entrypointsLen;
 			int debug;
 			int optimizationLevel;
 			int pruneUnused;
@@ -38,12 +38,11 @@ import (
 		};
 
 		struct OpaBuildResult {
-		    unsigned char* result;
-		    int resultLen;
-		    char* errors;
+			unsigned char* result;
+			int resultLen;
+			char* errors;
 			char* log;
 		};
-
 	*/
 	"C"
 	"bytes"
