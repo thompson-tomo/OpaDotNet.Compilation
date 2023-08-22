@@ -119,25 +119,6 @@ public class RegoInteropCompiler : IRegoCompiler
     }
 
     /// <inheritdoc />
-    public async Task<Stream> CompileSource(
-        string source,
-        IEnumerable<string>? entrypoints = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(source);
-
-        using var bundle = new MemoryStream();
-        var bw = new BundleWriter(bundle);
-
-        await using (bw.ConfigureAwait(false))
-            bw.WriteEntry(source, "policy.rego");
-
-        bundle.Seek(0, SeekOrigin.Begin);
-
-        return await CompileStream(bundle, entrypoints, null, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
     public Task<Stream> CompileStream(
         Stream bundle,
         IEnumerable<string>? entrypoints = null,

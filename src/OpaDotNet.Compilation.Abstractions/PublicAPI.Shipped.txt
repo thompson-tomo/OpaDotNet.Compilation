@@ -2,7 +2,6 @@
 OpaDotNet.Compilation.Abstractions.IRegoCompiler
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileBundle(string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileFile(string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileSource(string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.Version(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<OpaDotNet.Compilation.Abstractions.RegoCompilerVersion!>!
 OpaDotNet.Compilation.Abstractions.RegoCompilationException
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message, System.Exception? innerException) -> void

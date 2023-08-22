@@ -42,18 +42,6 @@ public interface IRegoCompiler
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Compiles OPA bundle from rego policy source code.
-    /// </summary>
-    /// <param name="source">Source file path.</param>
-    /// <param name="entrypoints">Which documents (entrypoints) will be queried when asking for policy decisions.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Compiled OPA bundle stream.</returns>
-    Task<Stream> CompileSource(
-        string source,
-        IEnumerable<string>? entrypoints = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Compiles OPA bundle from rego bundle stream.
     /// </summary>
     /// <param name="bundle">Rego bundle stream.</param>
@@ -68,4 +56,29 @@ public interface IRegoCompiler
         IEnumerable<string>? entrypoints = null,
         Stream? capabilitiesJson = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compiles OPA bundle from rego policy source code.
+    /// </summary>
+    /// <param name="source">Source file path.</param>
+    /// <param name="entrypoints">Which documents (entrypoints) will be queried when asking for policy decisions.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Compiled OPA bundle stream.</returns>
+    async Task<Stream> CompileSource(
+        string source,
+        IEnumerable<string>? entrypoints = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(source);
+
+        using var bundle = new MemoryStream();
+        var bw = new BundleWriter(bundle);
+
+        await using (bw.ConfigureAwait(false))
+            bw.WriteEntry(source, "policy.rego");
+
+        bundle.Seek(0, SeekOrigin.Begin);
+
+        return await CompileStream(bundle, entrypoints, null, cancellationToken).ConfigureAwait(false);
+    }
 }

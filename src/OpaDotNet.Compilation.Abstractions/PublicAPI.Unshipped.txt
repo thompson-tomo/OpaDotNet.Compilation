@@ -13,6 +13,7 @@ OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threadi
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileSource(string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileStream(System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.get -> bool
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.set -> void

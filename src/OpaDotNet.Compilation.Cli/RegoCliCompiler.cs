@@ -177,27 +177,6 @@ public class RegoCliCompiler : IRegoCompiler
     }
 
     /// <inheritdoc />
-    public async Task<Stream> CompileSource(
-        string source,
-        IEnumerable<string>? entrypoints = null,
-        CancellationToken cancellationToken = default)
-    {
-        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
-        var sourceFile = new FileInfo(Path.Combine(path, $"{Guid.NewGuid()}.rego"));
-        await File.WriteAllTextAsync(sourceFile.FullName, source, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
-
-        try
-        {
-            return await CompileFile(sourceFile.FullName, entrypoints, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            if (!_options.Value.PreserveBuildArtifacts)
-                File.Delete(sourceFile.FullName);
-        }
-    }
-
-    /// <inheritdoc />
     public async Task<Stream> CompileStream(
         Stream bundle,
         IEnumerable<string>? entrypoints = null,
