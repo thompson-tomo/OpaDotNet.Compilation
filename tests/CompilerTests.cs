@@ -124,6 +124,8 @@ public abstract class CompilerTests<T, TOptions>
         Assert.NotNull(v.Version);
         Assert.NotNull(v.GoVersion);
         Assert.NotNull(v.Platform);
+
+        OutputHelper.WriteLine(v.ToString());
     }
 
     [Fact]

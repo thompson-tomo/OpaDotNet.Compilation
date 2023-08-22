@@ -21,6 +21,9 @@ if (Test-Path ./bin) {
     Remove-Item ./bin -Recurse
 }
 
+$hash = git rev-parse HEAD
+Write-Host "SHA: $hash"
+
 $targets | %{
     $outPath = "$($_.OS)-$($_.Arch)"
 
@@ -34,9 +37,9 @@ $targets | %{
 
     if ($IsWindows) {
         $env:WSLENV = "GOOS/u:GOARCH/u:CGO_ENABLED/u:CC/u:CXX/u"
-        wsl /usr/local/go/bin/go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+        wsl /usr/local/go/bin/go build -C ./interop -ldflags "-w -s -X main.Vcs=$hash" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
     } else {
-        go build -C ./interop -ldflags "-w -s" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+        go build -C ./interop -ldflags "-w -s -X main.Vcs=$hash" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
     }
 
     if (-not $?) {

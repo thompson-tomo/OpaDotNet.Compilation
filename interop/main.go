@@ -60,6 +60,7 @@ import (
 func main() {
 }
 
+var Vcs string
 var opaVersion *C.struct_OpaVersion
 var defaultCaps *ast.Capabilities
 
@@ -70,7 +71,7 @@ func init() {
 
 	(*opaVersion).libVersion = C.CString(version.Version)
 	(*opaVersion).goVersion = C.CString(version.GoVersion)
-	(*opaVersion).commit = C.CString(version.Vcs)
+	(*opaVersion).commit = C.CString(Vcs)
 	(*opaVersion).platform = C.CString(version.Platform)
 
 	defaultCaps = ast.CapabilitiesForThisVersion()
