@@ -1,2 +1,1 @@
 #nullable enable
-OpaDotNet.Compilation.Interop.RegoInteropCompiler.CompileStream(System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!

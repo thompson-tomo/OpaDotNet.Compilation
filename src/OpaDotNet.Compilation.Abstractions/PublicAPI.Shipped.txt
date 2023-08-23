@@ -1,7 +1,23 @@
 #nullable enable
+OpaDotNet.Compilation.Abstractions.BundleManifest
+OpaDotNet.Compilation.Abstractions.BundleManifest.Metadata.get -> System.Collections.Generic.Dictionary<string!, string!>!
+OpaDotNet.Compilation.Abstractions.BundleManifest.Revision.get -> string?
+OpaDotNet.Compilation.Abstractions.BundleManifest.Revision.init -> void
+OpaDotNet.Compilation.Abstractions.BundleManifest.Roots.get -> System.Collections.Generic.HashSet<string!>?
+OpaDotNet.Compilation.Abstractions.BundleManifest.Roots.init -> void
+OpaDotNet.Compilation.Abstractions.BundleManifest.Wasm.get -> System.Collections.Generic.HashSet<OpaDotNet.Compilation.Abstractions.WasmMetadata!>!
+OpaDotNet.Compilation.Abstractions.BundleWriter
+OpaDotNet.Compilation.Abstractions.BundleWriter.BundleWriter(System.IO.Stream! stream, OpaDotNet.Compilation.Abstractions.BundleManifest? manifest = null) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.Dispose() -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threading.Tasks.ValueTask
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
+OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void
 OpaDotNet.Compilation.Abstractions.IRegoCompiler
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileBundle(string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileFile(string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileSource(string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileStream(System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.Version(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<OpaDotNet.Compilation.Abstractions.RegoCompilerVersion!>!
 OpaDotNet.Compilation.Abstractions.RegoCompilationException
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message, System.Exception? innerException) -> void
@@ -17,6 +33,8 @@ OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.OutputPath.get -> string?
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.OutputPath.set -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PreserveBuildArtifacts.get -> bool
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PreserveBuildArtifacts.set -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.get -> bool
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.set -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.RegoCompilerOptions() -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Commit.get -> string?
@@ -27,3 +45,9 @@ OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Platform.get -> string?
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Platform.set -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Version.get -> string?
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Version.set -> void
+OpaDotNet.Compilation.Abstractions.WasmMetadata
+OpaDotNet.Compilation.Abstractions.WasmMetadata.Entrypoint.get -> string!
+OpaDotNet.Compilation.Abstractions.WasmMetadata.Entrypoint.init -> void
+OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.get -> string!
+OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.init -> void
+OpaDotNet.Compilation.Abstractions.WasmMetadata.WasmMetadata(string! Entrypoint, string! Module) -> void
