@@ -9,7 +9,7 @@ Backend for packaging OPA policy and data files into bundles for [OpaDotNet](htt
 
 |                                       | Package  |
 |---------------------------------------|----------|
-| OpaDotNet.Compilation.Abstractions    | [![NuGet](https://img.shields.io/nuget/v/OpaDotNet.Compilation.Abstractions.svg)](https://www.nuget.org/packages/OpaDotNet.OpaDotNet.Compilation.Abstractions/) |
+| OpaDotNet.Compilation.Abstractions    | [![NuGet](https://img.shields.io/nuget/v/OpaDotNet.Compilation.Abstractions.svg)](https://www.nuget.org/packages/OpaDotNet.Compilation.Abstractions/) |
 | OpaDotNet.Compilation.Cli             | [![NuGet](https://img.shields.io/nuget/v/OpaDotNet.Compilation.Cli.svg)](https://www.nuget.org/packages/OpaDotNet.Compilation.Cli/) |
 | OpaDotNet.Compilation.Interop         | [![NuGet](https://img.shields.io/nuget/v/OpaDotNet.Compilation.Interop.svg)](https://www.nuget.org/packages/OpaDotNet.Compilation.Interop/) |
 
