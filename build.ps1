@@ -35,11 +35,18 @@ $targets | %{
     $env:CC = $_.CC
     $env:CXX = $_.CXX
 
+    $ba = @(
+        "-C", "./interop"
+        "-ldflags", "`"-w -s -X main.Vcs=$hash`"",
+        "-buildmode=c-shared",
+        "-o", "../bin/$outPath/Opa.Interop.$($_.Ext)",
+        "./main.go")
+
     if ($IsWindows) {
         $env:WSLENV = "GOOS/u:GOARCH/u:CGO_ENABLED/u:CC/u:CXX/u"
-        wsl /usr/local/go/bin/go build -C ./interop -ldflags "-w -s -X main.Vcs=$hash" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+        wsl /usr/local/go/bin/go build @ba
     } else {
-        go build -C ./interop -ldflags "-w -s -X main.Vcs=$hash" -buildmode=c-shared -o "../bin/$outPath/Opa.Interop.$($_.Ext)" ./main.go
+        go build @ba
     }
 
     if (-not $?) {
