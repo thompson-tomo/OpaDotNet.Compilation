@@ -292,4 +292,46 @@ public abstract class CompilerTests<T, TOptions>
             AssertBundle.HasNonEmptyData
             );
     }
+
+    [Fact]
+    public async Task EnsureCleanup()
+    {
+        using var ms = new MemoryStream();
+
+        await using (var bw = new BundleWriter(ms))
+        {
+            using var inStream = new MemoryStream();
+            inStream.Write(Encoding.UTF8.GetBytes(TestHelpers.PolicySource("p2", "p2r")));
+            inStream.Seek(0, SeekOrigin.Begin);
+
+            bw.WriteEntry(TestHelpers.SimplePolicySource, "p1.rego");
+            bw.WriteEntry(inStream, "/tests/p2.rego");
+            bw.WriteEntry("{}"u8, "/tests/data.json");
+            bw.WriteEntry("{}"u8, @"c:\a\data.json");
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var opts = new TOptions
+        {
+            PruneUnused = true,
+            Debug = true,
+            OutputPath = "./tmp-cleanup",
+        };
+
+        var tmpDir = new DirectoryInfo(opts.OutputPath);
+
+        if (tmpDir.Exists)
+            tmpDir.Delete(true);
+
+        tmpDir.Create();
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+        var bundle = await compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints);
+
+        await bundle.DisposeAsync();
+
+        var filesCount = tmpDir.EnumerateFiles().Count();
+        Assert.Equal(0, filesCount);
+    }
 }
