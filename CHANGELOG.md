@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.2.2 (2023-09-18)
+
+### Bug Fixes
+
+* Interop compiler is not removing temporary artifacts ([a52ac06](https://github.com/me-viper/OpaDotNet.Compilation/commit/a52ac06617e0dbd627197a38d2e158efe963caa3))
+
 ## OpaDotNet.Compilation v1.2.1 (2023-09-18)
 
 ### Bug Fixes

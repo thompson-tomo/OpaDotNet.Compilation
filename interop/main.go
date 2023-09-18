@@ -127,15 +127,10 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 		return -2
 	}
 
-	fileName := f.Name()
-
 	defer func(f *os.File) {
 		_ = f.Close()
+		_ = os.Remove(f.Name())
 	}(f)
-
-	defer func(name string) {
-		_ = os.Remove(name)
-	}(fileName)
 
 	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
 
