@@ -1,8 +1,7 @@
-#mode: Mainline
+mode: Mainline
 tag-prefix: '[vV]'
 branches:
-  develop:
-    regex: ^dev(elop)?(ment)?$
+  release:
     tag: preview
 ignore:
   sha: []
