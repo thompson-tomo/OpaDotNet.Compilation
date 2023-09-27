@@ -151,6 +151,10 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 
 	opaMakeResult(*buildResult, resultBytes, loggerBuffer, err)
 
+	if err != nil {
+		return -4
+	}
+
 	return 0
 }
 
@@ -182,6 +186,10 @@ func OpaBuildFromFs(fsParams *C.struct_OpaFsBuildParams, buildResult **C.struct_
 	logger.Debug("Result pointer: %p", *buildResult)
 
 	opaMakeResult(*buildResult, resultBytes, loggerBuffer, err)
+
+	if err != nil {
+		return -4
+	}
 
 	return 0
 }
