@@ -1,5 +1,16 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.3.0 (2023-09-27)
+
+### Bug Fixes
+
+* Closes [#1](https://github.com/me-viper/OpaDotNet.Compilation/issues/1), [#2](https://github.com/me-viper/OpaDotNet.Compilation/issues/2). Use tempfs to avoid creating temporary files ([f5490c3](https://github.com/me-viper/OpaDotNet.Compilation/commit/f5490c371a80ea39deb0d2ab5f0fb7c8fde93853))
+* Improve error handling ([c0f9b15](https://github.com/me-viper/OpaDotNet.Compilation/commit/c0f9b15a88e2dde80ef8d89bb407e2e1d2969cac))
+
+### Features
+
+* Bump OPA dependencies to v0.56.0 ([9d4759d](https://github.com/me-viper/OpaDotNet.Compilation/commit/9d4759d0b99a8a6a3ba612ae65a54c9a99e7ba87))
+
 ## OpaDotNet.Compilation v1.2.2 (2023-09-18)
 
 ### Bug Fixes
