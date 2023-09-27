@@ -334,4 +334,41 @@ public abstract class CompilerTests<T, TOptions>
         var filesCount = tmpDir.EnumerateFiles().Count();
         Assert.Equal(0, filesCount);
     }
+
+    [Fact]
+    public async Task EnsureCleanupOnError()
+    {
+        using var ms = new MemoryStream();
+
+        await using (var bw = new BundleWriter(ms))
+        {
+            using var inStream = new MemoryStream();
+            inStream.Write("bad policy"u8);
+            inStream.Seek(0, SeekOrigin.Begin);
+
+            bw.WriteEntry(inStream, "/tests/p2.rego");
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var opts = new TOptions
+        {
+            PruneUnused = true,
+            Debug = true,
+            OutputPath = "./tmp-cleanup-fail",
+        };
+
+        var tmpDir = new DirectoryInfo(opts.OutputPath);
+
+        if (tmpDir.Exists)
+            tmpDir.Delete(true);
+
+        tmpDir.Create();
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+        await Assert.ThrowsAsync<RegoCompilationException>(() => compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints));
+
+        var filesCount = tmpDir.EnumerateFiles().Count();
+        Assert.Equal(0, filesCount);
+    }
 }

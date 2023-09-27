@@ -2,7 +2,10 @@ module main
 
 go 1.20
 
-require github.com/open-policy-agent/opa v0.56.0
+require (
+	github.com/liamg/memoryfs v1.6.0
+	github.com/open-policy-agent/opa v0.56.0
+)
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect

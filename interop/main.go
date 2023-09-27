@@ -48,12 +48,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/liamg/memoryfs"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/compile"
 	"github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/version"
 	"io"
-	"os"
+	"io/fs"
 	"unsafe"
 )
 
@@ -88,6 +89,7 @@ type buildParams struct {
 	optimizationLevel   int
 	pruneUnused         bool
 	revision            string
+	fs                  fs.FS
 }
 
 //export OpaGetVersion
@@ -99,6 +101,8 @@ func OpaGetVersion() *C.struct_OpaVersion {
 func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C.struct_OpaBuildResult) int {
 	var logger logging.Logger
 	loggerBuffer := bytes.NewBuffer(nil)
+
+	memfs := memoryfs.New()
 
 	if byteParams.params.debug == 0 {
 		logger = logging.NewNoOpLogger()
@@ -113,36 +117,20 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 	C.memset(unsafe.Pointer(*buildResult), 0, C.sizeof_struct_OpaBuildResult)
 	logger.Debug("Result pointer: %p", *buildResult)
 
-	// OPA does not support building from byte[] yet. Creating temporary file.
-	dir := "./"
-
-	if byteParams.params.tempDir != nil {
-		dir = C.GoString(byteParams.params.tempDir)
-	}
-
-	f, err := os.CreateTemp(dir, "policy.*.tar.gz")
-
-	if err != nil {
-		opaMakeResult(*buildResult, nil, loggerBuffer, err)
-		return -2
-	}
-
-	defer func(f *os.File) {
-		_ = f.Close()
-		_ = os.Remove(f.Name())
-	}(f)
-
 	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
 
-	logger.Debug("Saving source into temporary file %s", f.Name())
-	_, err = f.Write(buf)
+	fileName := "policy.tar.gz"
+
+	// OPA does not support building from byte[] yet. For time being using memfs.
+	err := memfs.WriteFile(fileName, buf, 0700)
 	if err != nil {
 		opaMakeResult(*buildResult, nil, loggerBuffer, err)
 		return -3
 	}
 
 	bp := opaMakeBuildParams(byteParams.params)
-	bp.source = f.Name()
+	bp.source = fileName
+	bp.fs = memfs
 
 	logger.Debug("Compiler version: %s", version.Version)
 	//logger.Debug("Build params: %v", bp)
@@ -322,6 +310,10 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithPruneUnused(params.pruneUnused).
 		WithOptimizationLevel(params.optimizationLevel).
 		WithRegoAnnotationEntrypoints(true)
+
+	if params.fs != nil {
+		compiler.WithFS(params.fs)
+	}
 
 	if params.debug {
 		compiler.WithDebug(loggerBuffer)
