@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 namespace OpaDotNet.Compilation.Tests;
 
 [UsedImplicitly]
+[Trait("Category", "Interop")]
 public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompilerOptions>
 {
     static InteropCompilerTests()

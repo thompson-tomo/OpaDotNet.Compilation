@@ -12,6 +12,7 @@ namespace OpaDotNet.Compilation.Tests;
 
 [UsedImplicitly]
 [Trait("NeedsCli", "true")]
+[Trait("Category", "Cli")]
 public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOptions>
 {
     public CliCompilerTests(ITestOutputHelper output) : base(output)
