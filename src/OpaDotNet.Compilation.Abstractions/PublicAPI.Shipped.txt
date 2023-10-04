@@ -51,3 +51,4 @@ OpaDotNet.Compilation.Abstractions.WasmMetadata.Entrypoint.init -> void
 OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.get -> string!
 OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.init -> void
 OpaDotNet.Compilation.Abstractions.WasmMetadata.WasmMetadata(string! Entrypoint, string! Module) -> void
+static OpaDotNet.Compilation.Abstractions.BundleWriter.MergeCapabilities(System.IO.Stream! caps1, System.IO.Stream! caps2) -> System.IO.Stream!

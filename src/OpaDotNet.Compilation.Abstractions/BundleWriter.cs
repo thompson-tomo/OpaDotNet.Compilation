@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 using JetBrains.Annotations;
 
@@ -47,6 +48,45 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
     }
 
     private static string NormalizePath(string path) => "/" + path.Replace("\\", "/").TrimStart('/');
+
+    /// <summary>
+    /// Merges two capabilities.json streams.
+    /// </summary>
+    /// <param name="caps1">First capabilities.json stream.</param>
+    /// <param name="caps2">Second capabilities.json stream.</param>
+    /// <returns>Merged capabilities.json stream.</returns>
+    public static Stream MergeCapabilities(Stream caps1, Stream caps2)
+    {
+        ArgumentNullException.ThrowIfNull(caps1);
+        ArgumentNullException.ThrowIfNull(caps2);
+
+        var resultDoc = JsonNode.Parse(caps1);
+
+        if (resultDoc == null)
+            throw new RegoCompilationException("Failed to parse capabilities file");
+
+        var resultBins = resultDoc.Root["builtins"]?.AsArray();
+
+        if (resultBins == null)
+            throw new RegoCompilationException("Invalid capabilities file: 'builtins' node not found");
+
+        var capsDoc = JsonDocument.Parse(caps2);
+        var capsBins = capsDoc.RootElement.GetProperty("builtins");
+
+        foreach (var bin in capsBins.EnumerateArray())
+            resultBins.Add(bin);
+
+        var ms = new MemoryStream();
+
+        using (var jw = new Utf8JsonWriter(ms))
+        {
+            resultDoc.WriteTo(jw);
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        return ms;
+    }
 
     /// <summary>
     /// Writes string content into bundle.

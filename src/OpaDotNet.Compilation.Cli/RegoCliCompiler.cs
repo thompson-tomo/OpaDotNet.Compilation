@@ -245,34 +245,19 @@ public class RegoCliCompiler : IRegoCompiler
 
         try
         {
-            var capsFs = result.Open(FileMode.Open, FileAccess.ReadWrite);
+            var defaultCapsFs = result.Open(FileMode.Open, FileAccess.ReadWrite);
+            await using var _ = defaultCapsFs.ConfigureAwait(false);
+
+            var capsFs = file.OpenRead();
             await using var __ = capsFs.ConfigureAwait(false);
-            var capsDoc = JsonNode.Parse(capsFs);
 
-            if (capsDoc == null)
-                throw new RegoCompilationException(result.FullName, "Failed to parse capabilities file");
+            var ms = BundleWriter.MergeCapabilities(defaultCapsFs, capsFs);
+            await using var ___ = ms.ConfigureAwait(false);
 
-            var capsBins = capsDoc.Root["builtins"]?.AsArray();
+            defaultCapsFs.SetLength(0);
+            await defaultCapsFs.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            if (capsBins == null)
-                throw new RegoCompilationException(result.FullName, "Failed to parse capabilities file");
-
-            var exCapsFs = file.OpenRead();
-            await using var ___ = exCapsFs.ConfigureAwait(false);
-
-            var exCapsDoc = await JsonDocument.ParseAsync(exCapsFs, default, cancellationToken).ConfigureAwait(false);
-            var exCapsBins = exCapsDoc.RootElement.GetProperty("builtins");
-
-            foreach (var bin in exCapsBins.EnumerateArray())
-                capsBins.Add(bin);
-
-            capsFs.SetLength(0);
-            await capsFs.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-            var writer = new Utf8JsonWriter(capsFs);
-            await using var ____ = writer.ConfigureAwait(false);
-
-            capsDoc.WriteTo(writer);
+            await ms.CopyToAsync(defaultCapsFs, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

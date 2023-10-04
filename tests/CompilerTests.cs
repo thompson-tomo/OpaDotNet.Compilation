@@ -371,4 +371,99 @@ public abstract class CompilerTests<T, TOptions>
         var filesCount = tmpDir.EnumerateFiles().Count();
         Assert.Equal(0, filesCount);
     }
+
+    [Fact]
+    public async Task FailMultiCapabilities()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        _ = await Assert.ThrowsAsync<RegoCompilationException>(
+            () => compiler.CompileBundle(
+                Path.Combine("TestData", "multi-caps"),
+                new[] { "capabilities/f", "capabilities/f2" },
+                Path.Combine("TestData", "multi-caps", "caps1.json")
+                )
+            );
+    }
+
+    [Fact]
+    public async Task MergeMultiCapabilities()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            OutputPath = "tmp-multi-caps",
+        };
+
+        var tmpDir = new DirectoryInfo(opts.OutputPath);
+
+        if (tmpDir.Exists)
+            tmpDir.Delete(true);
+
+        tmpDir.Create();
+
+        await using var caps1Fs = File.OpenRead(Path.Combine("TestData", "multi-caps", "caps1.json"));
+        await using var caps2Fs = File.OpenRead(Path.Combine("TestData", "multi-caps", "caps2.json"));
+        await using var capsFs = BundleWriter.MergeCapabilities(caps1Fs, caps2Fs);
+
+        var tmpCapsFile = Path.Combine(tmpDir.FullName, "caps.json");
+
+        await using (var fs = new FileStream(tmpCapsFile, FileMode.CreateNew))
+        {
+            await capsFs.CopyToAsync(fs);
+        }
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var policy = await compiler.CompileBundle(
+            Path.Combine("TestData", "multi-caps"),
+            new[] { "capabilities/f", "capabilities/f2" },
+            tmpCapsFile
+            );
+
+        AssertBundle.IsValid(policy);
+    }
+
+    [Fact]
+    public async Task BundleWriterMergeMultiCapabilities()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            Debug = true,
+        };
+
+        using var bundle = new MemoryStream();
+
+        await using (var bw = new BundleWriter(bundle))
+        {
+            var rego = await File.ReadAllBytesAsync(Path.Combine("TestData", "multi-caps", "capabilities.rego"));
+            bw.WriteEntry(rego, "capabilities.rego");
+        }
+
+        bundle.Seek(0, SeekOrigin.Begin);
+        await using var caps1Fs = File.OpenRead(Path.Combine("TestData", "multi-caps", "caps1.json"));
+        await using var caps2Fs = File.OpenRead(Path.Combine("TestData", "multi-caps", "caps2.json"));
+        await using var capsFs = BundleWriter.MergeCapabilities(caps1Fs, caps2Fs);
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var policy = await compiler.CompileStream(
+            bundle,
+            new[] { "capabilities/f", "capabilities/f2" },
+            capsFs
+            );
+
+        AssertBundle.DumpBundle(policy, OutputHelper);
+
+        AssertBundle.Content(
+            policy,
+            p => AssertBundle.HasEntry(p, "/policy.wasm")
+            );
+    }
 }
