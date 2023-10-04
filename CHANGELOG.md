@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.3.2 (2023-10-04)
+
+### Features
+
+* Bump OPA version to v0.57.0 ([ab6dceb](https://github.com/me-viper/OpaDotNet.Compilation/commit/ab6dceb7a5a616af77d719fc262d23ccc65a08f3))
+
 ## OpaDotNet.Compilation v1.3.0 (2023-09-27)
 
 ### Bug Fixes
