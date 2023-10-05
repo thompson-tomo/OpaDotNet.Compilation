@@ -198,7 +198,8 @@ public class RegoCliCompiler : IRegoCompiler
         }
         finally
         {
-            tmpCaps.Delete();
+            if (tmpCaps.Attributes.HasFlag(FileAttributes.Temporary))
+                tmpCaps.Delete();
         }
     }
 
