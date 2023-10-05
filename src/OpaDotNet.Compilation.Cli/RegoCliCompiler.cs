@@ -1,7 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 using JetBrains.Annotations;
 
@@ -52,73 +49,47 @@ public class RegoCliCompiler : IRegoCompiler
     }
 
     /// <inheritdoc />
-    public async Task<Stream> CompileBundle(
-        string bundlePath,
-        IEnumerable<string>? entrypoints = null,
-        string? capabilitiesFilePath = null,
-        CancellationToken cancellationToken = default)
+    public async Task<Stream> Compile(
+        string path,
+        CompilationParameters parameters,
+        CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(bundlePath);
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        ArgumentNullException.ThrowIfNull(parameters);
 
-        bundlePath = NormalizePath(bundlePath);
-        using var scope = _logger.BeginScope("Bundle {Path}", bundlePath);
+        path = NormalizePath(path);
+
+        using var scope = _logger.BeginScope("Bundle {Path}", path);
 
         var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
 
-        var fullBundlePath = Path.GetFullPath(bundlePath);
+        var fullPath = Path.GetFullPath(path);
 
         // bundlePath can be directory or bundle archive.
         var bundleDirectory =
-            File.GetAttributes(fullBundlePath).HasFlag(FileAttributes.Directory)
-                ? new DirectoryInfo(fullBundlePath)
-                : new FileInfo(fullBundlePath).Directory!;
+            File.GetAttributes(fullPath).HasFlag(FileAttributes.Directory)
+                ? new DirectoryInfo(fullPath)
+                : new FileInfo(fullPath).Directory!;
 
         var outDir = new DirectoryInfo(_options.Value.OutputPath ?? bundleDirectory.FullName);
         var outputPath = outDir.FullName;
         var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
 
-        string? capabilitiesFile = null;
-        FileInfo? capsFile = null;
+        var capsFile = await WriteCapabilities(cli, parameters, outputPath, cancellationToken).ConfigureAwait(false);
 
-        if (!string.IsNullOrWhiteSpace(capabilitiesFilePath))
-        {
-            var fi = new FileInfo(capabilitiesFilePath);
+        var sourcePath = fullPath;
 
-            if (!fi.Exists)
-            {
-                throw new RegoCompilationException(
-                    fullBundlePath,
-                    $"Capabilities file {fi.FullName} was not found"
-                    );
-            }
-
-            if (!string.IsNullOrWhiteSpace(_options.Value.CapabilitiesVersion))
-            {
-                capsFile = await MergeCapabilities(
-                    cli,
-                    outputPath,
-                    fi,
-                    _options.Value.CapabilitiesVersion,
-                    cancellationToken
-                    ).ConfigureAwait(false);
-            }
-
-            capabilitiesFile = capsFile?.FullName ?? fi.FullName;
-        }
-
-        var sp = fullBundlePath;
-
-        if (!Path.IsPathRooted(bundlePath))
-            sp = Path.GetRelativePath(AppContext.BaseDirectory, bundlePath);
+        if (!Path.IsPathRooted(path))
+            sourcePath = Path.GetRelativePath(AppContext.BaseDirectory, path);
 
         var args = new OpaCliBuildArgs
         {
-            IsBundle = true,
-            SourcePath = sp,
+            IsBundle = parameters.IsBundle,
+            SourcePath = sourcePath,
             OutputFile = outputFileName,
-            Entrypoints = entrypoints?.ToHashSet(),
+            Entrypoints = parameters.Entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
-            CapabilitiesFile = capabilitiesFile,
+            CapabilitiesFile = capsFile?.FullName,
             CapabilitiesVersion = _options.Value.CapabilitiesVersion,
             PruneUnused = _options.Value.PruneUnused,
             Debug = _options.Value.Debug,
@@ -130,108 +101,279 @@ public class RegoCliCompiler : IRegoCompiler
         }
         finally
         {
-            if (!_options.Value.PreserveBuildArtifacts)
+            var doCleanup = capsFile != null && capsFile.Attributes.HasFlag(FileAttributes.Temporary);
+
+            if (doCleanup && !_options.Value.PreserveBuildArtifacts)
                 capsFile?.Delete();
         }
     }
 
     /// <inheritdoc />
-    public async Task<Stream> CompileFile(
-        string sourceFilePath,
-        IEnumerable<string>? entrypoints = null,
-        CancellationToken cancellationToken = default)
+    public async Task<Stream> Compile(
+        Stream stream,
+        CompilationParameters parameters,
+        CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
-
-        sourceFilePath = NormalizePath(sourceFilePath);
-        using var scope = _logger.BeginScope("File {Path}", sourceFilePath);
-
-        var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
-
-        var sourceFile = new FileInfo(sourceFilePath);
-
-        if (!sourceFile.Exists)
-            throw new RegoCompilationException(sourceFilePath, $"Source file {sourceFilePath} not found");
-
-        var outDir = new DirectoryInfo(_options.Value.OutputPath ?? sourceFile.Directory!.FullName);
-        var outputPath = outDir.FullName;
-        var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
-
-        var sp = sourceFilePath;
-
-        if (!Path.IsPathRooted(sourceFilePath))
-            sp = Path.GetRelativePath(AppContext.BaseDirectory, sourceFilePath);
-
-        var args = new OpaCliBuildArgs
-        {
-            SourcePath = sp,
-            OutputFile = outputFileName,
-            Entrypoints = entrypoints?.ToHashSet(),
-            ExtraArguments = _options.Value.ExtraArguments,
-            CapabilitiesVersion = _options.Value.CapabilitiesVersion,
-            PruneUnused = _options.Value.PruneUnused,
-            Debug = _options.Value.Debug,
-        };
-
-        return await Build(cli, args, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async Task<Stream> CompileStream(
-        Stream bundle,
-        IEnumerable<string>? entrypoints = null,
-        Stream? capabilitiesJson = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(parameters);
 
         var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
         var fileName = Guid.NewGuid();
         var sourceFile = new FileInfo(Path.Combine(path, $"{fileName}.tar.gz"));
-        var capsFile = new FileInfo(Path.Combine(path, $"{fileName}.json"));
 
         try
         {
             var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew);
             await using var _ = fs.ConfigureAwait(false);
 
-            await bundle.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+            await stream.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
             await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            FileStream? capsFs = null;
-
-            if (capabilitiesJson != null)
-            {
-                capsFs = new FileStream(capsFile.FullName, FileMode.CreateNew);
-                await using var __ = capsFs.ConfigureAwait(false);
-
-                await capabilitiesJson.CopyToAsync(capsFs, cancellationToken).ConfigureAwait(false);
-                await capsFs.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return await CompileBundle(
+            return await Compile(
                 fs.Name,
-                entrypoints,
-                capsFs?.Name,
+                parameters,
                 cancellationToken
                 ).ConfigureAwait(false);
         }
         finally
         {
             if (!_options.Value.PreserveBuildArtifacts)
-            {
                 sourceFile.Delete();
-
-                if (capsFile.Exists)
-                    capsFile.Delete();
-            }
         }
     }
+
+    private async Task<FileInfo?> WriteCapabilities(
+        OpaCliWrapper cli,
+        CompilationParameters parameters,
+        string outputPath,
+        CancellationToken cancellationToken)
+    {
+        FileInfo? result = null;
+
+        if (string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath) && parameters.CapabilitiesStream == null)
+            return null;
+
+        if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
+        {
+            result = new FileInfo(parameters.CapabilitiesFilePath);
+
+            if (!result.Exists)
+                throw new RegoCompilationException($"Capabilities file {result.FullName} was not found");
+        }
+
+        if (parameters.CapabilitiesStream != null)
+        {
+            var capsFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.json");
+            result = new FileInfo(capsFileName);
+
+            var fs = result.OpenWrite();
+            await using var _ = fs.ConfigureAwait(false);
+
+            await parameters.CapabilitiesStream.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+            await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+            result.Attributes |= FileAttributes.Temporary;
+        }
+
+        if (result == null || string.IsNullOrWhiteSpace(_options.Value.CapabilitiesVersion))
+            return result;
+
+        var capsStream = result.OpenRead();
+        await using var __ = capsStream.ConfigureAwait(false);
+
+        result = await MergeCapabilities(
+            cli,
+            outputPath,
+            capsStream,
+            _options.Value.CapabilitiesVersion,
+            cancellationToken
+            ).ConfigureAwait(false);
+
+        result.Attributes |= FileAttributes.Temporary;
+        return result;
+    }
+
+    // /// <inheritdoc />
+    // public async Task<Stream> CompileBundle(
+    //     string bundlePath,
+    //     IEnumerable<string>? entrypoints = null,
+    //     string? capabilitiesFilePath = null,
+    //     CancellationToken cancellationToken = default)
+    // {
+    //     ArgumentException.ThrowIfNullOrEmpty(bundlePath);
+    //
+    //     bundlePath = NormalizePath(bundlePath);
+    //     using var scope = _logger.BeginScope("Bundle {Path}", bundlePath);
+    //
+    //     var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
+    //
+    //     var fullBundlePath = Path.GetFullPath(bundlePath);
+    //
+    //     // bundlePath can be directory or bundle archive.
+    //     var bundleDirectory =
+    //         File.GetAttributes(fullBundlePath).HasFlag(FileAttributes.Directory)
+    //             ? new DirectoryInfo(fullBundlePath)
+    //             : new FileInfo(fullBundlePath).Directory!;
+    //
+    //     var outDir = new DirectoryInfo(_options.Value.OutputPath ?? bundleDirectory.FullName);
+    //     var outputPath = outDir.FullName;
+    //     var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
+    //
+    //     string? capabilitiesFile = null;
+    //     FileInfo? capsFile = null;
+    //
+    //     if (!string.IsNullOrWhiteSpace(capabilitiesFilePath))
+    //     {
+    //         var fi = new FileInfo(capabilitiesFilePath);
+    //
+    //         if (!fi.Exists)
+    //         {
+    //             throw new RegoCompilationException(
+    //                 fullBundlePath,
+    //                 $"Capabilities file {fi.FullName} was not found"
+    //                 );
+    //         }
+    //
+    //         if (!string.IsNullOrWhiteSpace(_options.Value.CapabilitiesVersion))
+    //         {
+    //             capsFile = await MergeCapabilities(
+    //                 cli,
+    //                 outputPath,
+    //                 fi,
+    //                 _options.Value.CapabilitiesVersion,
+    //                 cancellationToken
+    //                 ).ConfigureAwait(false);
+    //         }
+    //
+    //         capabilitiesFile = capsFile?.FullName ?? fi.FullName;
+    //     }
+    //
+    //     var sp = fullBundlePath;
+    //
+    //     if (!Path.IsPathRooted(bundlePath))
+    //         sp = Path.GetRelativePath(AppContext.BaseDirectory, bundlePath);
+    //
+    //     var args = new OpaCliBuildArgs
+    //     {
+    //         IsBundle = true,
+    //         SourcePath = sp,
+    //         OutputFile = outputFileName,
+    //         Entrypoints = entrypoints?.ToHashSet(),
+    //         ExtraArguments = _options.Value.ExtraArguments,
+    //         CapabilitiesFile = capabilitiesFile,
+    //         CapabilitiesVersion = _options.Value.CapabilitiesVersion,
+    //         PruneUnused = _options.Value.PruneUnused,
+    //         Debug = _options.Value.Debug,
+    //     };
+    //
+    //     try
+    //     {
+    //         return await Build(cli, args, cancellationToken).ConfigureAwait(false);
+    //     }
+    //     finally
+    //     {
+    //         if (!_options.Value.PreserveBuildArtifacts)
+    //             capsFile?.Delete();
+    //     }
+    // }
+    //
+    // /// <inheritdoc />
+    // public async Task<Stream> CompileFile(
+    //     string sourceFilePath,
+    //     IEnumerable<string>? entrypoints = null,
+    //     CancellationToken cancellationToken = default)
+    // {
+    //     ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
+    //
+    //     sourceFilePath = NormalizePath(sourceFilePath);
+    //     using var scope = _logger.BeginScope("File {Path}", sourceFilePath);
+    //
+    //     var cli = await OpaCliWrapper.Create(CliPath, _logger, cancellationToken).ConfigureAwait(false);
+    //
+    //     var sourceFile = new FileInfo(sourceFilePath);
+    //
+    //     if (!sourceFile.Exists)
+    //         throw new RegoCompilationException(sourceFilePath, $"Source file {sourceFilePath} not found");
+    //
+    //     var outDir = new DirectoryInfo(_options.Value.OutputPath ?? sourceFile.Directory!.FullName);
+    //     var outputPath = outDir.FullName;
+    //     var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
+    //
+    //     var sp = sourceFilePath;
+    //
+    //     if (!Path.IsPathRooted(sourceFilePath))
+    //         sp = Path.GetRelativePath(AppContext.BaseDirectory, sourceFilePath);
+    //
+    //     var args = new OpaCliBuildArgs
+    //     {
+    //         SourcePath = sp,
+    //         OutputFile = outputFileName,
+    //         Entrypoints = entrypoints?.ToHashSet(),
+    //         ExtraArguments = _options.Value.ExtraArguments,
+    //         CapabilitiesVersion = _options.Value.CapabilitiesVersion,
+    //         PruneUnused = _options.Value.PruneUnused,
+    //         Debug = _options.Value.Debug,
+    //     };
+    //
+    //     return await Build(cli, args, cancellationToken).ConfigureAwait(false);
+    // }
+    //
+    // /// <inheritdoc />
+    // public async Task<Stream> CompileStream(
+    //     Stream bundle,
+    //     IEnumerable<string>? entrypoints = null,
+    //     Stream? capabilitiesJson = null,
+    //     CancellationToken cancellationToken = default)
+    // {
+    //     ArgumentNullException.ThrowIfNull(bundle);
+    //
+    //     var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
+    //     var fileName = Guid.NewGuid();
+    //     var sourceFile = new FileInfo(Path.Combine(path, $"{fileName}.tar.gz"));
+    //     var capsFile = new FileInfo(Path.Combine(path, $"{fileName}.json"));
+    //
+    //     try
+    //     {
+    //         var fs = new FileStream(sourceFile.FullName, FileMode.CreateNew);
+    //         await using var _ = fs.ConfigureAwait(false);
+    //
+    //         await bundle.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+    //         await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+    //
+    //         FileStream? capsFs = null;
+    //
+    //         if (capabilitiesJson != null)
+    //         {
+    //             capsFs = new FileStream(capsFile.FullName, FileMode.CreateNew);
+    //             await using var __ = capsFs.ConfigureAwait(false);
+    //
+    //             await capabilitiesJson.CopyToAsync(capsFs, cancellationToken).ConfigureAwait(false);
+    //             await capsFs.FlushAsync(cancellationToken).ConfigureAwait(false);
+    //         }
+    //
+    //         return await CompileBundle(
+    //             fs.Name,
+    //             entrypoints,
+    //             capsFs?.Name,
+    //             cancellationToken
+    //             ).ConfigureAwait(false);
+    //     }
+    //     finally
+    //     {
+    //         if (!_options.Value.PreserveBuildArtifacts)
+    //         {
+    //             sourceFile.Delete();
+    //
+    //             if (capsFile.Exists)
+    //                 capsFile.Delete();
+    //         }
+    //     }
+    // }
 
     private static async Task<FileInfo> MergeCapabilities(
         OpaCliWrapper cli,
         string outputPath,
-        FileInfo file,
+        Stream capabilities,
         string version,
         CancellationToken cancellationToken)
     {
@@ -248,7 +390,7 @@ public class RegoCliCompiler : IRegoCompiler
             var defaultCapsFs = result.Open(FileMode.Open, FileAccess.ReadWrite);
             await using var _ = defaultCapsFs.ConfigureAwait(false);
 
-            var capsFs = file.OpenRead();
+            var capsFs = capabilities;
             await using var __ = capsFs.ConfigureAwait(false);
 
             var ms = BundleWriter.MergeCapabilities(defaultCapsFs, capsFs);
@@ -263,7 +405,7 @@ public class RegoCliCompiler : IRegoCompiler
         {
             throw new RegoCompilationException(
                 outputPath,
-                $"Failed to parse capabilities file {file.FullName}",
+                "Failed to parse capabilities",
                 ex
                 );
         }

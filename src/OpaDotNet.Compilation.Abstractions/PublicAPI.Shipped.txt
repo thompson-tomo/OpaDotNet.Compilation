@@ -13,17 +13,25 @@ OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threadi
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void
+OpaDotNet.Compilation.Abstractions.CompilationParameters
+OpaDotNet.Compilation.Abstractions.CompilationParameters.CapabilitiesFilePath.get -> string?
+OpaDotNet.Compilation.Abstractions.CompilationParameters.CapabilitiesFilePath.init -> void
+OpaDotNet.Compilation.Abstractions.CompilationParameters.CapabilitiesStream.get -> System.IO.Stream?
+OpaDotNet.Compilation.Abstractions.CompilationParameters.CapabilitiesStream.init -> void
+OpaDotNet.Compilation.Abstractions.CompilationParameters.Entrypoints.get -> System.Collections.Generic.IReadOnlySet<string!>?
+OpaDotNet.Compilation.Abstractions.CompilationParameters.Entrypoints.init -> void
+OpaDotNet.Compilation.Abstractions.CompilationParameters.IsBundle.get -> bool
+OpaDotNet.Compilation.Abstractions.CompilationParameters.IsBundle.init -> void
 OpaDotNet.Compilation.Abstractions.IRegoCompiler
-OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileBundle(string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileFile(string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileSource(string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Abstractions.IRegoCompiler.CompileStream(System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.Compile(string! path, OpaDotNet.Compilation.Abstractions.CompilationParameters! parameters, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Abstractions.IRegoCompiler.Compile(System.IO.Stream! stream, OpaDotNet.Compilation.Abstractions.CompilationParameters! parameters, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Abstractions.IRegoCompiler.Version(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<OpaDotNet.Compilation.Abstractions.RegoCompilerVersion!>!
 OpaDotNet.Compilation.Abstractions.RegoCompilationException
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message, System.Exception? innerException) -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string! sourceFile, string? message) -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.RegoCompilationException(string? message) -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilationException.SourceFile.get -> string?
+OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.CapabilitiesVersion.get -> string?
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.CapabilitiesVersion.set -> void
@@ -52,3 +60,7 @@ OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.get -> string!
 OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.init -> void
 OpaDotNet.Compilation.Abstractions.WasmMetadata.WasmMetadata(string! Entrypoint, string! Module) -> void
 static OpaDotNet.Compilation.Abstractions.BundleWriter.MergeCapabilities(System.IO.Stream! caps1, System.IO.Stream! caps2) -> System.IO.Stream!
+static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileBundle(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileFile(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileSource(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, string! source, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileStream(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!

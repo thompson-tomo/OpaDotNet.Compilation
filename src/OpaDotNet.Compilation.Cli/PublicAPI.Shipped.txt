@@ -1,10 +1,9 @@
 #nullable enable
 OpaDotNet.Compilation.Cli.RegoCliCompiler
-OpaDotNet.Compilation.Cli.RegoCliCompiler.CompileBundle(string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Cli.RegoCliCompiler.CompileFile(string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
-OpaDotNet.Compilation.Cli.RegoCliCompiler.CompileStream(System.IO.Stream! bundle, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.IO.Stream? capabilitiesJson = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Cli.RegoCliCompiler.RegoCliCompiler(Microsoft.Extensions.Options.IOptions<OpaDotNet.Compilation.Cli.RegoCliCompilerOptions!>? options = null, Microsoft.Extensions.Logging.ILogger<OpaDotNet.Compilation.Cli.RegoCliCompiler!>? logger = null) -> void
 OpaDotNet.Compilation.Cli.RegoCliCompiler.Version(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<OpaDotNet.Compilation.Abstractions.RegoCompilerVersion!>!
+OpaDotNet.Compilation.Cli.RegoCliCompiler.Compile(string! path, OpaDotNet.Compilation.Abstractions.CompilationParameters! parameters, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream!>!
+OpaDotNet.Compilation.Cli.RegoCliCompiler.Compile(System.IO.Stream! stream, OpaDotNet.Compilation.Abstractions.CompilationParameters! parameters, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 OpaDotNet.Compilation.Cli.RegoCliCompilerOptions
 OpaDotNet.Compilation.Cli.RegoCliCompilerOptions.ExtraArguments.get -> string?
 OpaDotNet.Compilation.Cli.RegoCliCompilerOptions.ExtraArguments.set -> void

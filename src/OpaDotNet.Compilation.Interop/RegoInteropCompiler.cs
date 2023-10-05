@@ -56,86 +56,88 @@ public class RegoInteropCompiler : IRegoCompiler
     }
 
     /// <inheritdoc />
-    public Task<Stream> CompileBundle(
-        string bundlePath,
-        IEnumerable<string>? entrypoints = null,
-        string? capabilitiesFilePath = null,
-        CancellationToken cancellationToken = default)
+    public async Task<Stream> Compile(
+        string path,
+        CompilationParameters parameters,
+        CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(bundlePath);
-
-        var path = bundlePath;
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        ArgumentNullException.ThrowIfNull(parameters);
 
         if (path.StartsWith("./") || path.StartsWith(".\\"))
             path = path[2..];
 
-        Stream? caps = null;
+        var caps = parameters.CapabilitiesStream;
 
         try
         {
-            if (!string.IsNullOrWhiteSpace(capabilitiesFilePath))
-                caps = new FileStream(capabilitiesFilePath, FileMode.Open);
+            if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
+                caps = new FileStream(parameters.CapabilitiesFilePath, FileMode.Open);
 
             var result = Interop.Compile(
                 NormalizePath(path),
-                true,
+                parameters.IsBundle,
                 _options.Value,
-                entrypoints,
+                parameters.Entrypoints,
                 caps,
                 _logger
                 );
 
-            return Task.FromResult(result);
+            return result;
         }
         finally
         {
-            caps?.Dispose();
+            if (caps != null)
+                await caps.DisposeAsync().ConfigureAwait(false);
         }
     }
 
     /// <inheritdoc />
-    public Task<Stream> CompileFile(
-        string sourceFilePath,
-        IEnumerable<string>? entrypoints = null,
-        CancellationToken cancellationToken = default)
+    public async Task<Stream> Compile(
+        Stream stream,
+        CompilationParameters parameters,
+        CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sourceFilePath);
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(parameters);
 
-        var path = sourceFilePath;
+        var caps = parameters.CapabilitiesStream;
+        Stream? bundle = null;
 
-        if (path.StartsWith("./") || path.StartsWith(".\\"))
-            path = path[2..];
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
+                caps = new FileStream(parameters.CapabilitiesFilePath, FileMode.Open);
 
-        var result = Interop.Compile(
-            NormalizePath(path),
-            false,
-            _options.Value,
-            entrypoints,
-            null,
-            _logger
-            );
+            if (!parameters.IsBundle)
+            {
+                bundle = new MemoryStream();
+                var bw = new BundleWriter(bundle);
 
-        return Task.FromResult(result);
-    }
+                await using (bw.ConfigureAwait(false))
+                    bw.WriteEntry(stream, "policy.rego");
 
-    /// <inheritdoc />
-    public Task<Stream> CompileStream(
-        Stream bundle,
-        IEnumerable<string>? entrypoints = null,
-        Stream? capabilitiesJson = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(bundle);
+                bundle.Seek(0, SeekOrigin.Begin);
+            }
 
-        var result = Interop.Compile(
-            bundle,
-            true,
-            _options.Value,
-            entrypoints,
-            capabilitiesJson,
-            _logger
-            );
+            var result = Interop.Compile(
+                bundle ?? stream,
+                true,
+                _options.Value,
+                parameters.Entrypoints,
+                caps,
+                _logger
+                );
 
-        return Task.FromResult(result);
+            return result;
+        }
+        finally
+        {
+            if (bundle != null)
+                await bundle.DisposeAsync().ConfigureAwait(false);
+
+            if (caps != null)
+                await caps.DisposeAsync().ConfigureAwait(false);
+        }
     }
 }

@@ -1,10 +1,11 @@
 # Changelog
 
-## OpaDotNet.Compilation v1.4.0 (2023-10-04)
+## OpaDotNet.Compilation v1.4.0 (2023-10-05)
 
 ### Features
 
 * Provide API to merge capabilities ([e847732](https://github.com/me-viper/OpaDotNet.Compilation/commit/e847732790bc16b844a7938db40fd9c79877b97b))
+* Redesign compilation API ([2028f9e](https://github.com/me-viper/OpaDotNet.Compilation/commit/2028f9ee73e64e54514f30121ea6fd78d026e2c4))
 
 ## OpaDotNet.Compilation v1.3.2 (2023-10-04)
 
