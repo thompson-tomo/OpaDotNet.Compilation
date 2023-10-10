@@ -45,6 +45,8 @@ OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PreserveBuildArtifacts.se
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.get -> bool
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.PruneUnused.set -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.RegoCompilerOptions() -> void
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.Ignore.get -> System.Collections.Generic.IReadOnlySet<string!>!
+OpaDotNet.Compilation.Abstractions.RegoCompilerOptions.Ignore.set -> void
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Commit.get -> string?
 OpaDotNet.Compilation.Abstractions.RegoCompilerVersion.Commit.set -> void

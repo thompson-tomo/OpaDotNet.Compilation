@@ -98,7 +98,7 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Creates new instance of <see cref="BundleWriter"/> and populates it with files in <see cref="path"/>.
+    /// Creates new instance of <see cref="BundleWriter"/> and populates it with files in <paramref name="path"/>.
     /// </summary>
     /// <param name="stream">Stream to write bundle to.</param>
     /// <param name="path">Path containing bundle source files.</param>
