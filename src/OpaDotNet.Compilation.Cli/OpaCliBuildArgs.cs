@@ -19,7 +19,7 @@ internal class OpaCliBuildArgs
 
     public string? CapabilitiesVersion { get; init; }
 
-    public HashSet<string>? Entrypoints { get; init; }
+    public IReadOnlySet<string>? Entrypoints { get; init; }
 
     public int OptimizationLevel { get; init; }
 
@@ -28,6 +28,8 @@ internal class OpaCliBuildArgs
     public string? ExtraArguments { get; init; }
 
     public bool Debug { get; init; }
+
+    public IReadOnlySet<string>? Ignore { get; init; }
 
     public override string ToString()
     {
@@ -40,7 +42,7 @@ internal class OpaCliBuildArgs
             result.Append(" " + string.Join(" ", Entrypoints.Select(p => $"-e {p}")));
 
         if (!string.IsNullOrWhiteSpace(CapabilitiesFile))
-            result.Append($" --capabilities {CapabilitiesFile}");
+            result.Append($" --capabilities \"{CapabilitiesFile}\"");
         else
         {
             if (!string.IsNullOrWhiteSpace(CapabilitiesVersion))
@@ -55,12 +57,18 @@ internal class OpaCliBuildArgs
         if (Debug)
             result.Append(" --debug");
 
-        result.Append($" -o {OutputFile}");
+        if (Ignore is { Count: > 0 })
+        {
+            foreach (var s in Ignore)
+                result.Append($" --ignore \"{s}\"");
+        }
+
+        result.Append($" -o \"{OutputFile}\"");
 
         if (!string.IsNullOrWhiteSpace(ExtraArguments))
             result.Append(" " + ExtraArguments);
 
-        result.Append($" {SourcePath}");
+        result.Append($" \"{SourcePath}\"");
 
         return result.ToString();
     }

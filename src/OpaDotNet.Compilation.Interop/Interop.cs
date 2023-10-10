@@ -68,6 +68,10 @@ internal static class Interop
         public string? TempDir;
 
         public string? Revision;
+
+        public nint Ignore;
+
+        public int IgnoreLen;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -114,6 +118,9 @@ internal static class Interop
         var pEntrypoints = nint.Zero;
         var entrypointsList = Array.Empty<nint>();
 
+        var pIgnore = nint.Zero;
+        var ignoreList = Array.Empty<nint>();
+
         try
         {
             string? caps = null;
@@ -148,6 +155,22 @@ internal static class Interop
 
                 buildParams.Entrypoints = pEntrypoints;
                 buildParams.EntrypointsLen = ep.Length;
+            }
+
+            if (options.Ignore is { Count: > 0 })
+            {
+                pIgnore = Marshal.AllocCoTaskMem(options.Ignore.Count * nint.Size);
+                ignoreList = new nint[options.Ignore.Count];
+
+                var i = 0;
+
+                foreach (var ign in options.Ignore)
+                    ignoreList[i++] = Marshal.StringToCoTaskMemAnsi(ign);
+
+                Marshal.Copy(ignoreList, 0, pIgnore, options.Ignore.Count);
+
+                buildParams.Ignore = pIgnore;
+                buildParams.IgnoreLen = options.Ignore.Count;
             }
 
             var bundle = nint.Zero;
@@ -192,6 +215,14 @@ internal static class Interop
                     Marshal.FreeCoTaskMem(p);
 
                 Marshal.FreeCoTaskMem(pEntrypoints);
+            }
+
+            if (pIgnore != nint.Zero)
+            {
+                foreach (var p in ignoreList)
+                    Marshal.FreeCoTaskMem(p);
+
+                Marshal.FreeCoTaskMem(pIgnore);
             }
         }
     }

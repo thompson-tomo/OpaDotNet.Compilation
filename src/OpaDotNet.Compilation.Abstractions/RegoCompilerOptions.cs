@@ -42,4 +42,9 @@ public class RegoCompilerOptions
     /// Exclude dependents of entrypoints.
     /// </summary>
     public bool PruneUnused { get; set; }
+
+    /// <summary>
+    /// Set file and directory names to ignore during loading (e.g., '.*' excludes hidden files).
+    /// </summary>
+    public IReadOnlySet<string> Ignore { get; set; } = new HashSet<string>();
 }

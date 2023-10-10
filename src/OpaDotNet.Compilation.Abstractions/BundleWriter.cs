@@ -1,10 +1,14 @@
 ﻿using System.Formats.Tar;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using JetBrains.Annotations;
+
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace OpaDotNet.Compilation.Abstractions;
 
@@ -30,6 +34,11 @@ namespace OpaDotNet.Compilation.Abstractions;
 public sealed class BundleWriter : IDisposable, IAsyncDisposable
 {
     private readonly TarWriter _writer;
+
+    /// <summary>
+    /// <c>true</c> if BundleWriter has no entries written; otherwise <c>false</c>.
+    /// </summary>
+    public bool IsEmpty { get; private set; }
 
     /// <summary>
     /// Creates new instance of <see cref="BundleWriter"/>.
@@ -89,6 +98,58 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
+    /// Creates new instance of <see cref="BundleWriter"/> and populates it with files in <see cref="path"/>.
+    /// </summary>
+    /// <param name="stream">Stream to write bundle to.</param>
+    /// <param name="path">Path containing bundle source files.</param>
+    /// <param name="exclusions">File name patterns for files the BundleWriter should exclude from the results.</param>
+    public static BundleWriter FromDirectory(
+        Stream stream,
+        string path,
+        IReadOnlySet<string>? exclusions)
+    {
+        var di = new DirectoryInfo(path);
+
+        if (!di.Exists)
+            throw new DirectoryNotFoundException($"Directory {di.FullName} was not found");
+
+        var comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        var glob = new Matcher(comparison);
+        glob.AddInclude("**/data.json");
+        glob.AddInclude("**/data.yaml");
+        glob.AddInclude("**/*.rego");
+        glob.AddInclude("**/policy.wasm");
+        glob.AddInclude("**/.manifest");
+
+        if (exclusions != null)
+        {
+            foreach (var excl in exclusions)
+                glob.AddExclude(excl);
+        }
+
+        var matches = glob.Execute(new DirectoryInfoWrapper(di));
+
+        var writer = new BundleWriter(stream);
+
+        foreach (var file in matches.Files)
+        {
+            var filePath = string.IsNullOrWhiteSpace(file.Stem) || string.Equals(file.Path, file.Stem, StringComparison.Ordinal)
+                ? file.Path
+                : Path.Combine(file.Path, file.Stem);
+
+            var fullPath = Path.Combine(di.FullName, filePath);
+
+            using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            writer.WriteEntry(fs, filePath);
+        }
+
+        return writer;
+    }
+
+    /// <summary>
     /// Writes string content into bundle.
     /// </summary>
     /// <param name="str">String content.</param>
@@ -141,6 +202,7 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
         };
 
         _writer.WriteEntry(entry);
+        IsEmpty = false;
     }
 
     /// <inheritdoc />

@@ -24,6 +24,8 @@ import (
 			int pruneUnused;
 			char* tempDir;
 			char* revision;
+			char** ignore;
+			int ignoreLen;
 		};
 
 		struct OpaFsBuildParams {
@@ -51,10 +53,13 @@ import (
 	"github.com/liamg/memoryfs"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/compile"
+	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/version"
 	"io"
 	"io/fs"
+	"os"
+	"strings"
 	"unsafe"
 )
 
@@ -90,6 +95,7 @@ type buildParams struct {
 	pruneUnused         bool
 	revision            string
 	fs                  fs.FS
+	ignore              []string
 }
 
 //export OpaGetVersion
@@ -225,6 +231,20 @@ func opaMakeBuildParams(params C.struct_OpaBuildParams) *buildParams {
 		}
 	}
 
+	ignore := make([]string, 0, params.ignoreLen)
+
+	if params.ignore != nil {
+		var pstr **C.char = params.ignore
+
+		for _, ign := range unsafe.Slice(pstr, int(params.ignoreLen)) {
+			s := C.GoString(ign)
+
+			if len(s) > 0 {
+				ignore = append(ignore, s)
+			}
+		}
+	}
+
 	return &buildParams{
 		capabilitiesJSON:    C.GoString(params.capabilitiesJSON),
 		capabilitiesVersion: C.GoString(params.capabilitiesVersion),
@@ -235,6 +255,7 @@ func opaMakeBuildParams(params C.struct_OpaBuildParams) *buildParams {
 		optimizationLevel:   int(params.optimizationLevel),
 		pruneUnused:         params.pruneUnused > 0,
 		revision:            C.GoString(params.revision),
+		ignore:              ignore,
 	}
 }
 
@@ -263,6 +284,30 @@ func opaMergeCaps(a *ast.Capabilities, b *ast.Capabilities) *ast.Capabilities {
 	result.FutureKeywords = append(a.FutureKeywords, b.FutureKeywords...)
 	result.WasmABIVersions = append(a.WasmABIVersions, b.WasmABIVersions...)
 	return result
+}
+
+type loaderFilter struct {
+	Ignore []string
+}
+
+func (f loaderFilter) Apply(abspath string, info os.FileInfo, depth int) bool {
+	for _, s := range f.Ignore {
+		if loader.GlobExcludeName(s, 1)(abspath, info, depth) {
+			return true
+		}
+	}
+	return false
+}
+
+func buildCommandLoaderFilter(bundleMode bool, ignore []string) func(string, os.FileInfo, int) bool {
+	return func(abspath string, info os.FileInfo, depth int) bool {
+		if !bundleMode {
+			if !info.IsDir() && strings.HasSuffix(abspath, ".tar.gz") {
+				return true
+			}
+		}
+		return loaderFilter{Ignore: ignore}.Apply(abspath, info, depth)
+	}
 }
 
 func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error) {
@@ -309,7 +354,8 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithOutput(buf).
 		WithPruneUnused(params.pruneUnused).
 		WithOptimizationLevel(params.optimizationLevel).
-		WithRegoAnnotationEntrypoints(true)
+		WithRegoAnnotationEntrypoints(true).
+		WithFilter(buildCommandLoaderFilter(params.bundleMode, params.ignore))
 
 	if params.fs != nil {
 		compiler.WithFS(params.fs)

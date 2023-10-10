@@ -1,6 +1,7 @@
 ﻿using System.Formats.Tar;
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 
 using Xunit.Abstractions;
 
@@ -50,6 +51,28 @@ public static class AssertBundle
             Assert.Fail("Expected non empty data.json");
 
         return true;
+    }
+
+    public static bool AssertData(TarEntry entry, Predicate<JsonDocument> inspector)
+    {
+        Assert.NotNull(entry);
+
+        if (!string.Equals(entry.Name, "/data.json", StringComparison.Ordinal))
+            return false;
+
+        Assert.Equal(TarEntryType.RegularFile, entry.EntryType);
+        Assert.NotNull(entry.DataStream);
+        Assert.True(entry.DataStream.Length > 0);
+
+        var buf = new byte[entry.DataStream.Length];
+        _ = entry.DataStream.Read(buf);
+
+        if (Encoding.UTF8.GetString(buf).StartsWith("{}"))
+            Assert.Fail("Expected non empty data.json");
+
+        var json = JsonDocument.Parse(buf);
+
+        return inspector(json);
     }
 
     public static void DumpBundle(Stream bundle, ITestOutputHelper output)

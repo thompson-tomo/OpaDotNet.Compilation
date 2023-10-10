@@ -1,5 +1,12 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.4.1 (2023-10-10)
+
+### Features
+
+* Add helper to build BundleWriter from directory
+* Add ignore parameter for Cli and Interop compilers
+
 ## OpaDotNet.Compilation v1.4.0 (2023-10-05)
 
 ### Features

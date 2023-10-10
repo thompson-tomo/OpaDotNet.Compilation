@@ -10,6 +10,7 @@ OpaDotNet.Compilation.Abstractions.BundleWriter
 OpaDotNet.Compilation.Abstractions.BundleWriter.BundleWriter(System.IO.Stream! stream, OpaDotNet.Compilation.Abstractions.BundleManifest? manifest = null) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.Dispose() -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.DisposeAsync() -> System.Threading.Tasks.ValueTask
+OpaDotNet.Compilation.Abstractions.BundleWriter.IsEmpty.get -> bool
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.IO.Stream! stream, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<byte> bytes, string! path) -> void
 OpaDotNet.Compilation.Abstractions.BundleWriter.WriteEntry(System.ReadOnlySpan<char> str, string! path) -> void
@@ -59,6 +60,7 @@ OpaDotNet.Compilation.Abstractions.WasmMetadata.Entrypoint.init -> void
 OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.get -> string!
 OpaDotNet.Compilation.Abstractions.WasmMetadata.Module.init -> void
 OpaDotNet.Compilation.Abstractions.WasmMetadata.WasmMetadata(string! Entrypoint, string! Module) -> void
+static OpaDotNet.Compilation.Abstractions.BundleWriter.FromDirectory(System.IO.Stream! stream, string! path, System.Collections.Generic.IReadOnlySet<string!>? exclusions) -> OpaDotNet.Compilation.Abstractions.BundleWriter!
 static OpaDotNet.Compilation.Abstractions.BundleWriter.MergeCapabilities(System.IO.Stream! caps1, System.IO.Stream! caps2) -> System.IO.Stream!
 static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileBundle(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, string! bundlePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, string? capabilitiesFilePath = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!
 static OpaDotNet.Compilation.Abstractions.RegoCompilerExtensions.CompileFile(this OpaDotNet.Compilation.Abstractions.IRegoCompiler! compiler, string! sourceFilePath, System.Collections.Generic.IEnumerable<string!>? entrypoints = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream!>!

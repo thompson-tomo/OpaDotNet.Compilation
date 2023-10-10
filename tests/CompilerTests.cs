@@ -466,4 +466,183 @@ public abstract class CompilerTests<T, TOptions>
             p => AssertBundle.HasEntry(p, "/policy.wasm")
             );
     }
+
+    [Theory]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, null)]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, new[] { "test1" })]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, new[] { "test1", "test2" })]
+    public async Task Ignore(string path, string[] entrypoints, string[]? exclusions)
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            Ignore = exclusions?.ToHashSet() ?? new HashSet<string>(),
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+        await using var bundle = await compiler.CompileBundle(path, entrypoints);
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+
+        AssertBundle.Content(
+            bundle,
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.AssertData(
+                p,
+                pp =>
+                {
+                    OutputHelper.WriteLine(pp.RootElement.GetRawText());
+
+                    foreach (var excl in exclusions ?? Array.Empty<string>())
+                    {
+                        if (pp.RootElement.TryGetProperty(excl, out _))
+                            Assert.Fail($"data.json contains excluded element {excl}");
+                    }
+
+                    return true;
+                }
+                )
+            );
+    }
+
+    [Theory]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, null)]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, new[] { "test1" })]
+    [InlineData("TestData/compile-bundle/example", new[] { "test1/hello" }, new[] { "test1", "test2" })]
+    public async Task FromDirectory(string path, string[] entrypoints, string[]? exclusions)
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+        };
+
+        using var ms = new MemoryStream();
+
+        var bundleWriter = BundleWriter.FromDirectory(ms, path, exclusions?.ToHashSet());
+
+        Assert.False(bundleWriter.IsEmpty);
+
+        await bundleWriter.DisposeAsync();
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var bundle = await compiler.CompileStream(ms, entrypoints);
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+
+        AssertBundle.Content(
+            bundle,
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.AssertData(
+                p,
+                pp =>
+                {
+                    OutputHelper.WriteLine(pp.RootElement.GetRawText());
+
+                    foreach (var excl in exclusions ?? Array.Empty<string>())
+                    {
+                        if (pp.RootElement.TryGetProperty(excl, out _))
+                            Assert.Fail($"data.json contains excluded element {excl}");
+                    }
+
+                    return true;
+                }
+                )
+            );
+    }
+
+    private static DirectoryInfo SetupSymlinks()
+    {
+        var basePath = Path.Combine("TestData", "symlinks");
+        var targetPath = new DirectoryInfo(Path.Combine("TestData", "sl-test"));
+
+        if (targetPath.Exists)
+            targetPath.Delete(true);
+
+        targetPath.Create();
+        var dataDir = targetPath.CreateSubdirectory(".data");
+
+        File.Copy(Path.Combine(basePath, "data.yaml"), Path.Combine(dataDir.FullName, "data.yaml"));
+        File.Copy(Path.Combine(basePath, "policy.rego"), Path.Combine(dataDir.FullName, "policy.rego"));
+
+        File.CreateSymbolicLink(Path.Combine(targetPath.FullName, "data.yaml"), Path.Combine(".data", "data.yaml"));
+        File.CreateSymbolicLink(Path.Combine(targetPath.FullName, "policy.rego"), Path.Combine(".data", "policy.rego"));
+
+        return targetPath;
+    }
+
+    [Fact(Skip = "OPA backend fails to deal with symlinks correctly")]
+    public async Task SymlinksFail()
+    {
+        // We need to do more setup for this one.
+        var targetPath = SetupSymlinks();
+
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            //Ignore = new[] { ".*" }.ToHashSet(),
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var bundle = await compiler.CompileBundle(targetPath.FullName, new[] { "sl/allow" });
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+
+        AssertBundle.Content(
+            bundle,
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.AssertData(
+                p,
+                pp =>
+                {
+                    OutputHelper.WriteLine(pp.RootElement.GetRawText());
+                    Assert.True(pp.RootElement.TryGetProperty("test", out _));
+                    return true;
+                }
+                )
+            );
+    }
+
+    [Fact]
+    public async Task Symlinks()
+    {
+        // We need to do more setup for this one.
+        var targetPath = SetupSymlinks();
+
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = "v0.53.1",
+            Ignore = new[] { ".*" }.ToHashSet(),
+        };
+
+        using var ms = new MemoryStream();
+
+        var bundleWriter = BundleWriter.FromDirectory(ms, targetPath.FullName, opts.Ignore);
+
+        Assert.False(bundleWriter.IsEmpty);
+
+        await bundleWriter.DisposeAsync();
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        await using var bundle = await compiler.CompileStream(ms, new[] { "sl/allow" });
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+
+        AssertBundle.Content(
+            bundle,
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.AssertData(
+                p,
+                pp =>
+                {
+                    OutputHelper.WriteLine(pp.RootElement.GetRawText());
+                    return pp.RootElement.TryGetProperty("test", out _);
+                }
+                )
+            );
+    }
 }

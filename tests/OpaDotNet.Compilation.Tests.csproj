@@ -22,43 +22,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-
+  
   <ItemGroup>
-    <None Update="TestData\policy.rego">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\capabilities\capabilities.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\capabilities\capabilities.rego">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Remove="TestResults\**"/>
-    <None Update="TestData\compile-bundle\example\test1.rego">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\compile-bundle\example\test2.rego">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\compile-bundle\example\test1\data.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\compile-bundle\example\test2\data.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\compile-bundle\example\data.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\src.bundle.tar.gz">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\multi-caps\capabilities.rego">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\multi-caps\caps1.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\multi-caps\caps2.json">
+    <None Update="TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -72,10 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Remove="TestResults\**"/>
+    <None Remove="TestResults\**"/>
     <Compile Remove="TestResults\**"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Remove="TestResults\**"/>
-  </ItemGroup>
 </Project>
