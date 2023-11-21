@@ -69,7 +69,7 @@ jobs:
     - name: Coveralls
       uses: coverallsapp/github-action@v2
       with:
-        file: ./tests/TestResults/coverage.info
+        files: ./tests/TestResults/coverage.net7.0.info ./tests/TestResults/coverage.net8.0.info
         format: lcov
 
     - name: Pack
