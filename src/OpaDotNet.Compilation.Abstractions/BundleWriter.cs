@@ -83,7 +83,16 @@ public sealed class BundleWriter : IDisposable, IAsyncDisposable
         var capsBins = capsDoc.RootElement.GetProperty("builtins");
 
         foreach (var bin in capsBins.EnumerateArray())
-            resultBins.Add(bin);
+        {
+            JsonNode? node = bin.ValueKind switch
+            {
+                JsonValueKind.Array => JsonArray.Create(bin),
+                JsonValueKind.Object => JsonObject.Create(bin),
+                _ => JsonValue.Create(bin)
+            };
+
+            resultBins.Add(node);
+        }
 
         var ms = new MemoryStream();
 
