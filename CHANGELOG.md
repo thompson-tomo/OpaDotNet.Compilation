@@ -1,5 +1,12 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.5.0 (2023-11-23)
+
+### Features
+
+* Support net8.0
+* Bump OPA version to v0.58.0
+
 ## OpaDotNet.Compilation v1.4.1 (2023-10-10)
 
 ### Features
