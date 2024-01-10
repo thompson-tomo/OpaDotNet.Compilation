@@ -1,6 +1,6 @@
 # Changelog
 
-## OpaDotNet.Compilation v1.5.0 (2024-01-10)
+## OpaDotNet.Compilation v1.6.0 (2024-01-10)
 
 ### Features
 
