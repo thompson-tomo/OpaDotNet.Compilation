@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**.md'
+  workflow_dispatch:
+    branches: [ main, release/v* ]
   pull_request:
     branches: [ main ]
     paths-ignore:
