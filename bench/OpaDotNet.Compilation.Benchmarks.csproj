@@ -13,19 +13,19 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
   </ItemGroup>
   <ItemGroup>
     <None Update="TestData\policy.rego">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Remove="BenchmarkDotNet.Artifacts\**"/>
+    <None Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\OpaDotNet.Compilation.Cli\OpaDotNet.Compilation.Cli.csproj"/>
-    <ProjectReference Include="..\src\OpaDotNet.Compilation.Interop\OpaDotNet.Compilation.Interop.csproj"/>
+    <ProjectReference Include="..\src\OpaDotNet.Compilation.Cli\OpaDotNet.Compilation.Cli.csproj" />
+    <ProjectReference Include="..\src\OpaDotNet.Compilation.Interop\OpaDotNet.Compilation.Interop.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**"/>
+    <EmbeddedResource Remove="BenchmarkDotNet.Artifacts\**" />
   </ItemGroup>
 </Project>
