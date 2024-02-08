@@ -5,18 +5,11 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations"/>
+    <PackageReference Include="OpaDotNet.Compilation.Abstractions"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
     <PackageReference Include="Microsoft.Extensions.Options"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-
-    <ProjectReference Include="..\OpaDotNet.Compilation.Abstractions\OpaDotNet.Compilation.Abstractions.csproj"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub"/>
   </ItemGroup>
 
   <ItemGroup>

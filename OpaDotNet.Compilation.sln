@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4BEC22A2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpaDotNet.Compilation.Interop", "src\OpaDotNet.Compilation.Interop\OpaDotNet.Compilation.Interop.csproj", "{1CCF18FC-0AA0-451D-8E0E-2BE2E2321CF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpaDotNet.Compilation.Abstractions", "src\OpaDotNet.Compilation.Abstractions\OpaDotNet.Compilation.Abstractions.csproj", "{245D6D68-8156-429A-BDC5-43B6A08F7B8E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpaDotNet.Compilation.Cli", "src\OpaDotNet.Compilation.Cli\OpaDotNet.Compilation.Cli.csproj", "{912F5B50-035F-48D6-B77C-44067E20D0E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bench", "bench", "{2CBD0E47-F45B-4954-BED2-B5371021E21F}"
@@ -33,14 +31,6 @@ Global
 		{1CCF18FC-0AA0-451D-8E0E-2BE2E2321CF2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1CCF18FC-0AA0-451D-8E0E-2BE2E2321CF2}.Release|x64.ActiveCfg = Release|Any CPU
 		{1CCF18FC-0AA0-451D-8E0E-2BE2E2321CF2}.Release|x64.Build.0 = Release|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Debug|x64.Build.0 = Debug|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Release|x64.ActiveCfg = Release|Any CPU
-		{245D6D68-8156-429A-BDC5-43B6A08F7B8E}.Release|x64.Build.0 = Release|Any CPU
 		{912F5B50-035F-48D6-B77C-44067E20D0E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{912F5B50-035F-48D6-B77C-44067E20D0E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{912F5B50-035F-48D6-B77C-44067E20D0E3}.Debug|x64.ActiveCfg = Debug|Any CPU
