@@ -20,14 +20,11 @@ on:
         type: boolean
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  go_build:
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -40,6 +37,29 @@ jobs:
     - name: Build native
       shell: pwsh
       run: ./build.ps1
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: bin
+        path: ./bin/*
+        if-no-files-found: error
+        retention-days: 1
+
+  build:
+
+    needs: go_build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: get_go_bin
+      uses: actions/download-artifact@v4
+      with:
+        name: bin
+        path: bin
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
