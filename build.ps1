@@ -37,7 +37,7 @@ $targets | %{
 
     $ba = @(
         "-C", "./interop"
-        "-ldflags", "`"-w -s -X main.Vcs=$hash`"",
+        "-ldflags", "-w -s -X main.Vcs=$hash",
         "-buildmode=c-shared",
         "-o", "../bin/$outPath/Opa.Interop.$($_.Ext)",
         "./main.go")
