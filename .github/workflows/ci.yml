@@ -26,6 +26,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: glibc version
+      run: ldd --version
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
@@ -86,7 +89,7 @@ jobs:
         OPA_CLI_VERSION: ${{ vars.OPA_CLI_VERSION }}
 
     - name: Test
-      run: dotnet test /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov --logger:"console;verbosity=detailed"
+      run: dotnet test /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov --logger:"console;"
 
     - name: Coveralls
       uses: coverallsapp/github-action@v2
