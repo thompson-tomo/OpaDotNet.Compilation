@@ -1,5 +1,12 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.6.1 (2024-02-09)
+
+### Features
+
+* Move OpaDotNet.Compilation.Abstractions into separate repository ([821738d](https://github.com/me-viper/OpaDotNet.Compilation/commit/821738d7f1609120ce7429b48bdb90a1ec97d4cd))
+* Fix [#5] Opa.Interop compiler fails on older ubuntu versions (20.04)
+
 ## OpaDotNet.Compilation v1.6.0 (2024-01-10)
 
 ### Features
