@@ -27,6 +27,8 @@ public abstract class CompilerTests<T, TOptions>
 
     protected abstract string BaseOutputPath { get; }
 
+    protected string DefaultCaps => "v0.64.0";
+
     protected abstract T CreateCompiler(TOptions? opts = null, ILoggerFactory? loggerFactory = null);
 
     [Theory]
@@ -160,7 +162,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
@@ -178,7 +180,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
@@ -196,7 +198,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
@@ -215,7 +217,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             Debug = true,
         };
 
@@ -380,7 +382,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
@@ -399,7 +401,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             OutputPath = Path.Combine(BaseOutputPath, "tmp-multi-caps"),
         };
 
@@ -437,7 +439,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             Debug = true,
         };
 
@@ -478,7 +480,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             Ignore = exclusions?.ToHashSet() ?? new HashSet<string>(),
         };
 
@@ -516,7 +518,7 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
         };
 
         using var ms = new MemoryStream();
@@ -583,7 +585,7 @@ public abstract class CompilerTests<T, TOptions>
 
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             //Ignore = new[] { ".*" }.ToHashSet(),
         };
 
@@ -616,7 +618,7 @@ public abstract class CompilerTests<T, TOptions>
 
         var opts = new TOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             Ignore = new[] { ".*" }.ToHashSet(),
         };
 

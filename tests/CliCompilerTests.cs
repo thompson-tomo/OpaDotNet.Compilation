@@ -57,7 +57,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
 
         var opts = new RegoCliCompilerOptions
         {
-            CapabilitiesVersion = "v0.53.1",
+            CapabilitiesVersion = DefaultCaps,
             PreserveBuildArtifacts = true,
             OutputPath = di.FullName,
         };
