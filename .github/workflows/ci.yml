@@ -93,6 +93,7 @@ jobs:
 
     - name: Coveralls
       uses: coverallsapp/github-action@v2
+      continue-on-error: true
       with:
         files: ./tests/TestResults/coverage.net7.0.info ./tests/TestResults/coverage.net8.0.info
         format: lcov
