@@ -608,8 +608,7 @@ public abstract class CompilerTests<T, TOptions>
             );
     }
 
-    //[Fact]
-    [Fact(Skip = "OPA backend fails to deal with symlinks correctly")]
+    [Fact]
     public async Task Symlinks()
     {
         // We need to do more setup for this one.
