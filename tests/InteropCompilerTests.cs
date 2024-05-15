@@ -30,6 +30,8 @@ public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompi
     {
     }
 
+    protected override string BaseOutputPath => "iop";
+
     protected override RegoInteropCompiler CreateCompiler(RegoCompilerOptions? opts = null, ILoggerFactory? loggerFactory = null)
     {
         return new RegoInteropCompiler(

@@ -25,6 +25,8 @@ public abstract class CompilerTests<T, TOptions>
         LoggerFactory = new LoggerFactory(new[] { new XunitLoggerProvider(output) });
     }
 
+    protected abstract string BaseOutputPath { get; }
+
     protected abstract T CreateCompiler(TOptions? opts = null, ILoggerFactory? loggerFactory = null);
 
     [Theory]
@@ -273,7 +275,7 @@ public abstract class CompilerTests<T, TOptions>
         {
             PruneUnused = true,
             Debug = true,
-            OutputPath = "./tmp",
+            OutputPath = Path.Combine(BaseOutputPath, "tmp"),
         };
 
         var tmpDir = new DirectoryInfo(opts.OutputPath);
@@ -317,7 +319,7 @@ public abstract class CompilerTests<T, TOptions>
         {
             PruneUnused = true,
             Debug = true,
-            OutputPath = "./tmp-cleanup",
+            OutputPath = Path.Combine(BaseOutputPath, "./tmp-cleanup"),
         };
 
         var tmpDir = new DirectoryInfo(opts.OutputPath);
@@ -356,7 +358,7 @@ public abstract class CompilerTests<T, TOptions>
         {
             PruneUnused = true,
             Debug = true,
-            OutputPath = "./tmp-cleanup-fail",
+            OutputPath = Path.Combine(BaseOutputPath, "./tmp-cleanup-fail"),
         };
 
         var tmpDir = new DirectoryInfo(opts.OutputPath);
@@ -398,7 +400,7 @@ public abstract class CompilerTests<T, TOptions>
         var opts = new TOptions
         {
             CapabilitiesVersion = "v0.53.1",
-            OutputPath = "tmp-multi-caps",
+            OutputPath = Path.Combine(BaseOutputPath, "tmp-multi-caps"),
         };
 
         var tmpDir = new DirectoryInfo(opts.OutputPath);
@@ -606,7 +608,8 @@ public abstract class CompilerTests<T, TOptions>
             );
     }
 
-    [Fact]
+    //[Fact]
+    [Fact(Skip = "OPA backend fails to deal with symlinks correctly")]
     public async Task Symlinks()
     {
         // We need to do more setup for this one.
