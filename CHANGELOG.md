@@ -1,5 +1,12 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.7.0 (2024-05-15)
+
+### Features
+
+* Bump OPA version to v0.64.1
+* Update dependencies
+
 ## OpaDotNet.Compilation v1.6.1 (2024-02-09)
 
 ### Features
