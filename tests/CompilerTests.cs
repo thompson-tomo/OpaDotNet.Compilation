@@ -10,6 +10,7 @@ using Xunit.Abstractions;
 
 namespace OpaDotNet.Compilation.Tests;
 
+[Collection("Compilation")]
 public abstract class CompilerTests<T, TOptions>
     where T : IRegoCompiler
     where TOptions : RegoCompilerOptions, new()
