@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.7.1 (2024-06-12)
+
+### Bug Fixes
+
+* Prevent OpaGetVersion from leaking memory
+
 ## OpaDotNet.Compilation v1.7.0 (2024-05-15)
 
 ### Features

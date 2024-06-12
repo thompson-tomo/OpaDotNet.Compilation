@@ -37,22 +37,33 @@ public class RegoInteropCompiler : IRegoCompiler
     /// <inheritdoc />
     public Task<RegoCompilerVersion> Version(CancellationToken cancellationToken = default)
     {
-        var vp = Interop.OpaGetVersion();
+        var vp = nint.Zero;
 
-        if (vp == nint.Zero)
-            throw new RegoCompilationException("Failed to get version");
-
-        var v = Marshal.PtrToStructure<Interop.OpaVersion>(vp);
-
-        var result = new RegoCompilerVersion
+        try
         {
-            Version = v.LibVersion,
-            Commit = v.Commit,
-            Platform = v.Platform,
-            GoVersion = v.GoVersion,
-        };
+            Interop.OpaGetVersion(out vp);
 
-        return Task.FromResult(result);
+            if (vp == nint.Zero)
+                throw new RegoCompilationException("Failed to get version");
+
+            var v = Marshal.PtrToStructure<Interop.OpaVersion>(vp);
+
+            var result = new RegoCompilerVersion
+            {
+                Version = v.LibVersion,
+                Commit = v.Commit,
+                Platform = v.Platform,
+                GoVersion = v.GoVersion,
+            };
+
+            return Task.FromResult(result);
+        }
+        finally
+        {
+            if (vp != nint.Zero)
+                Interop.OpaFreeVersion(vp);
+        }
+
     }
 
     /// <inheritdoc />

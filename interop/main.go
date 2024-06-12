@@ -67,19 +67,9 @@ func main() {
 }
 
 var Vcs string
-var opaVersion *C.struct_OpaVersion
 var defaultCaps *ast.Capabilities
 
 func init() {
-	// We will be leaking this memory, but it is allocated only once, so it should not be a big deal.
-	opaVersion = (*C.struct_OpaVersion)(C.malloc(C.sizeof_struct_OpaVersion))
-	C.memset(unsafe.Pointer(opaVersion), 0, C.sizeof_struct_OpaVersion)
-
-	(*opaVersion).libVersion = C.CString(version.Version)
-	(*opaVersion).goVersion = C.CString(version.GoVersion)
-	(*opaVersion).commit = C.CString(Vcs)
-	(*opaVersion).platform = C.CString(version.Platform)
-
 	defaultCaps = ast.CapabilitiesForThisVersion()
 }
 
@@ -99,8 +89,27 @@ type buildParams struct {
 }
 
 //export OpaGetVersion
-func OpaGetVersion() *C.struct_OpaVersion {
-	return opaVersion
+func OpaGetVersion(opaVersion **C.struct_OpaVersion) {
+	*opaVersion = (*C.struct_OpaVersion)(C.malloc(C.sizeof_struct_OpaVersion))
+	C.memset(unsafe.Pointer(*opaVersion), 0, C.sizeof_struct_OpaVersion)
+
+	(**opaVersion).libVersion = C.CString(version.Version)
+	(**opaVersion).goVersion = C.CString(version.GoVersion)
+	(**opaVersion).commit = C.CString(Vcs)
+	(**opaVersion).platform = C.CString(version.Platform)
+}
+
+//export OpaFreeVersion
+func OpaFreeVersion(ptr *C.struct_OpaVersion) {
+	if ptr == nil {
+		return
+	}
+
+	C.free(unsafe.Pointer((*ptr).libVersion))
+	C.free(unsafe.Pointer((*ptr).goVersion))
+	C.free(unsafe.Pointer((*ptr).commit))
+	C.free(unsafe.Pointer((*ptr).platform))
+	C.free(unsafe.Pointer(ptr))
 }
 
 //export OpaBuildFromBytes
