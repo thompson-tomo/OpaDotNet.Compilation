@@ -270,14 +270,9 @@ public class RegoCliCompiler : IRegoCompiler
     }
 
     [ExcludeFromCodeCoverage]
-    private class DeleteOnCloseFileStream : FileStream
+    private class DeleteOnCloseFileStream(string path, FileMode mode) : FileStream(path, mode)
     {
-        private readonly string _path;
-
-        public DeleteOnCloseFileStream(string path, FileMode mode) : base(path, mode)
-        {
-            _path = path;
-        }
+        private readonly string _path = path;
 
         protected override void Dispose(bool disposing)
         {

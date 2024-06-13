@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.7.2 (2024-06-13)
+
+### Features
+
+* Improve interop compilation from stream
+
 ## OpaDotNet.Compilation v1.7.1 (2024-06-12)
 
 ### Bug Fixes

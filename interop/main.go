@@ -50,8 +50,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/liamg/memoryfs"
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/compile"
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/logging"
@@ -86,6 +86,7 @@ type buildParams struct {
 	revision            string
 	fs                  fs.FS
 	ignore              []string
+	bundle              *bundle.Bundle
 }
 
 //export OpaGetVersion
@@ -117,8 +118,6 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 	var logger logging.Logger
 	loggerBuffer := bytes.NewBuffer(nil)
 
-	memfs := memoryfs.New()
-
 	if byteParams.params.debug == 0 {
 		logger = logging.NewNoOpLogger()
 	} else {
@@ -133,19 +132,16 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 	logger.Debug("Result pointer: %p", *buildResult)
 
 	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
+	reader := bytes.NewReader(buf)
 
-	fileName := "policy.tar.gz"
-
-	// OPA does not support building from byte[] yet. For time being using memfs.
-	err := memfs.WriteFile(fileName, buf, 0700)
+	b, err := bundle.NewReader(reader).Read()
 	if err != nil {
 		opaMakeResult(*buildResult, nil, loggerBuffer, err)
 		return -3
 	}
 
 	bp := opaMakeBuildParams(byteParams.params)
-	bp.source = fileName
-	bp.fs = memfs
+	bp.bundle = &b
 
 	logger.Debug("Compiler version: %s", version.Version)
 	//logger.Debug("Build params: %v", bp)
@@ -365,6 +361,10 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithOptimizationLevel(params.optimizationLevel).
 		WithRegoAnnotationEntrypoints(true).
 		WithFilter(buildCommandLoaderFilter(params.bundleMode, params.ignore))
+
+	if params.bundle != nil {
+		compiler.WithBundle(params.bundle)
+	}
 
 	if params.fs != nil {
 		compiler.WithFS(params.fs)

@@ -142,7 +142,7 @@ internal static class Interop
                 Target = "wasm",
                 Debug = options.Debug,
                 PruneUnused = options.PruneUnused,
-                TempDir = Path.GetFullPath(options.OutputPath ?? "./"),
+                TempDir = string.IsNullOrWhiteSpace(options.OutputPath) ? null : Path.GetFullPath(options.OutputPath),
             };
 
             if (entrypoints != null)

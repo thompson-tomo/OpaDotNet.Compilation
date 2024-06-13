@@ -15,7 +15,7 @@ namespace OpaDotNet.Compilation.Tests;
 
 [UsedImplicitly]
 [Trait("Category", "Interop")]
-public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompilerOptions>
+public class InteropCompilerTests(ITestOutputHelper output) : CompilerTests<RegoInteropCompiler, RegoCompilerOptions>(output)
 {
     static InteropCompilerTests()
     {
@@ -24,10 +24,6 @@ public class InteropCompilerTests : CompilerTests<RegoInteropCompiler, RegoCompi
             typeof(RegoInteropCompiler).Assembly,
             DllImportResolver
             );
-    }
-
-    public InteropCompilerTests(ITestOutputHelper output) : base(output)
-    {
     }
 
     protected override string BaseOutputPath => "iop";

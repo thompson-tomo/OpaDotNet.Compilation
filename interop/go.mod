@@ -4,10 +4,7 @@ go 1.21
 
 toolchain go1.22.3
 
-require (
-	github.com/liamg/memoryfs v1.6.0
-	github.com/open-policy-agent/opa v0.64.1
-)
+require github.com/open-policy-agent/opa v0.64.1
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
