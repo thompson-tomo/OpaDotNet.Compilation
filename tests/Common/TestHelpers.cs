@@ -12,5 +12,5 @@ internal static class TestHelpers
         default {{rule}} := false
         """;
 
-    public static readonly string[] SimplePolicyEntrypoints = { "example/allow" };
+    public static readonly string[] SimplePolicyEntrypoints = ["example/allow"];
 }

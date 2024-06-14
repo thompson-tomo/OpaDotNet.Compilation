@@ -134,7 +134,7 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
 	reader := bytes.NewReader(buf)
 
-	b, err := bundle.NewReader(reader).Read()
+	b, err := bundle.NewReader(reader).WithProcessAnnotations(true).Read()
 	if err != nil {
 		opaMakeResult(*buildResult, nil, loggerBuffer, err)
 		return -3

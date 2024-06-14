@@ -299,6 +299,37 @@ public abstract class CompilerTests<T, TOptions>
     }
 
     [Fact]
+    public async Task MetadataEntrypoints()
+    {
+        using var ms = new MemoryStream();
+
+        await using (var bw = new BundleWriter(ms))
+        {
+            var policy = """
+            # METADATA
+            # entrypoint: true
+            package test.ep
+            default allow := true
+            """;
+            bw.WriteEntry(policy, "p1.rego");
+        }
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var opts = new TOptions
+        {
+            PruneUnused = true,
+            Debug = true,
+            OutputPath = Path.Combine(BaseOutputPath, "./tmp-cleanup"),
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+        var bundle = await compiler.CompileStream(ms);
+
+        AssertBundle.DumpBundle(bundle, OutputHelper);
+    }
+
+    [Fact]
     public async Task EnsureCleanup()
     {
         using var ms = new MemoryStream();
