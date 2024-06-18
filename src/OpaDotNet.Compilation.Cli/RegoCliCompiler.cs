@@ -79,7 +79,7 @@ public class RegoCliCompiler : IRegoCompiler
 
         var sourcePath = fullPath;
 
-        if (!Path.IsPathRooted(path))
+        if (Path.IsPathRooted(path))
             sourcePath = Path.GetRelativePath(AppContext.BaseDirectory, path);
 
         var args = new OpaCliBuildArgs
