@@ -26,6 +26,7 @@ import (
 			char* revision;
 			char** ignore;
 			int ignoreLen;
+			int regoVersion;
 		};
 
 		struct OpaFsBuildParams {
@@ -87,6 +88,7 @@ type buildParams struct {
 	fs                  fs.FS
 	ignore              []string
 	bundle              *bundle.Bundle
+	regoVersion         ast.RegoVersion
 }
 
 //export OpaGetVersion
@@ -134,11 +136,22 @@ func OpaBuildFromBytes(byteParams *C.struct_OpaBytesBuildParams, buildResult **C
 	buf := C.GoBytes(unsafe.Pointer(byteParams.bytes), byteParams.bytesLen)
 	reader := bytes.NewReader(buf)
 
-	b, err := bundle.NewReader(reader).WithProcessAnnotations(true).Read()
+	ver := ast.RegoVersion(byteParams.params.regoVersion)
+
+	logger.Debug("Rego version: %v", ver)
+
+	b, err := bundle.
+		NewReader(reader).
+		WithProcessAnnotations(true).
+		WithRegoVersion(ver).
+		Read()
+
 	if err != nil {
 		opaMakeResult(*buildResult, nil, loggerBuffer, err)
 		return -3
 	}
+
+	logger.Debug("Done reading bundle")
 
 	bp := opaMakeBuildParams(byteParams.params)
 	bp.bundle = &b
@@ -261,6 +274,7 @@ func opaMakeBuildParams(params C.struct_OpaBuildParams) *buildParams {
 		pruneUnused:         params.pruneUnused > 0,
 		revision:            C.GoString(params.revision),
 		ignore:              ignore,
+		regoVersion:         ast.RegoVersion(params.regoVersion),
 	}
 }
 
@@ -360,7 +374,8 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithPruneUnused(params.pruneUnused).
 		WithOptimizationLevel(params.optimizationLevel).
 		WithRegoAnnotationEntrypoints(true).
-		WithFilter(buildCommandLoaderFilter(params.bundleMode, params.ignore))
+		WithFilter(buildCommandLoaderFilter(params.bundleMode, params.ignore)).
+		WithRegoVersion(params.regoVersion)
 
 	if params.bundle != nil {
 		compiler.WithBundle(params.bundle)

@@ -94,6 +94,8 @@ public class RegoCliCompiler : IRegoCompiler
             PruneUnused = _options.Value.PruneUnused,
             Debug = _options.Value.Debug,
             Ignore = _options.Value.Ignore,
+            Revision = parameters.Revision,
+            RegoVersion = _options.Value.RegoVersion,
         };
 
         try

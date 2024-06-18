@@ -306,11 +306,11 @@ public abstract class CompilerTests<T, TOptions>
         await using (var bw = new BundleWriter(ms))
         {
             var policy = """
-            # METADATA
-            # entrypoint: true
-            package test.ep
-            default allow := true
-            """;
+                # METADATA
+                # entrypoint: true
+                package test.ep
+                default allow := true
+                """;
             bw.WriteEntry(policy, "p1.rego");
         }
 
@@ -617,6 +617,7 @@ public abstract class CompilerTests<T, TOptions>
         var opts = new TOptions
         {
             CapabilitiesVersion = DefaultCaps,
+
             //Ignore = new[] { ".*" }.ToHashSet(),
         };
 
@@ -680,5 +681,67 @@ public abstract class CompilerTests<T, TOptions>
                 }
                 )
             );
+    }
+
+    [Fact]
+    public async Task Revision()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = DefaultCaps,
+            Debug = true,
+            RegoVersion = RegoVersion.V1,
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        var src = """
+            package test.v1
+
+            # METADATA
+            # entrypoint: true
+            allow if { true }
+            """;
+
+        var policy = await new RegoCompilerWrapper(compiler)
+            .WithSourceCode(src)
+            .WithRevision("rev1")
+            .CompileAsync();
+
+        AssertBundle.DumpBundle(policy, OutputHelper);
+        AssertBundle.Content(
+            policy,
+            p => AssertBundle.HasEntry(p, "/data.json"),
+            p => p.Name.EndsWith("src0.rego"),
+            p => AssertBundle.HasEntry(p, "/policy.wasm"),
+            p => AssertBundle.AssertManifest(p, pp => string.Equals("rev1", pp.Revision))
+            );
+    }
+
+    [Fact]
+    public async Task V1Compatibility()
+    {
+        var opts = new TOptions
+        {
+            CapabilitiesVersion = DefaultCaps,
+            Debug = true,
+            RegoVersion = RegoVersion.V1,
+        };
+
+        var compiler = CreateCompiler(opts, LoggerFactory);
+
+        var src = """
+            package test.v1
+
+            # METADATA
+            # entrypoint: true
+            allow if { true }
+            """;
+
+        var policy = await new RegoCompilerWrapper(compiler)
+            .WithSourceCode(src)
+            .CompileAsync();
+
+        AssertBundle.IsValid(policy);
     }
 }

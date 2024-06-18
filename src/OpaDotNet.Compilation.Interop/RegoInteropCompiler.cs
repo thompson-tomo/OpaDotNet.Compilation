@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -92,6 +91,7 @@ public class RegoInteropCompiler : IRegoCompiler
                 _options.Value,
                 parameters.Entrypoints,
                 caps,
+                parameters.Revision,
                 _logger
                 );
 
@@ -138,6 +138,7 @@ public class RegoInteropCompiler : IRegoCompiler
                 _options.Value,
                 parameters.Entrypoints,
                 caps,
+                parameters.Revision,
                 _logger
                 );
 

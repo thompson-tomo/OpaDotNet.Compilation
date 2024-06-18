@@ -3,6 +3,8 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
+using OpaDotNet.Compilation.Abstractions;
+
 using Xunit.Abstractions;
 
 namespace OpaDotNet.Compilation.Tests.Common;
@@ -51,6 +53,27 @@ public static class AssertBundle
             Assert.Fail("Expected non empty data.json");
 
         return true;
+    }
+
+    public static bool AssertManifest(TarEntry entry, Predicate<BundleManifest> inspector)
+    {
+        Assert.NotNull(entry);
+
+        if (!string.Equals(entry.Name, "/.manifest", StringComparison.Ordinal))
+            return false;
+
+        Assert.Equal(TarEntryType.RegularFile, entry.EntryType);
+        Assert.NotNull(entry.DataStream);
+        Assert.True(entry.DataStream.Length > 0);
+
+        var buf = new byte[entry.DataStream.Length];
+        _ = entry.DataStream.Read(buf);
+
+        var manifest = JsonSerializer.Deserialize<BundleManifest>(buf);
+
+        Assert.NotNull(manifest);
+
+        return inspector(manifest);
     }
 
     public static bool AssertData(TarEntry entry, Predicate<JsonDocument> inspector)

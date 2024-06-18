@@ -2,6 +2,10 @@
 
 using JetBrains.Annotations;
 
+using Microsoft.Extensions.Primitives;
+
+using OpaDotNet.Compilation.Abstractions;
+
 namespace OpaDotNet.Compilation.Cli;
 
 [PublicAPI]
@@ -31,6 +35,10 @@ internal class OpaCliBuildArgs
 
     public IReadOnlySet<string>? Ignore { get; init; }
 
+    public string? Revision { get; init; }
+
+    public RegoVersion RegoVersion { get; init; }
+
     public override string ToString()
     {
         var result = new StringBuilder($"-t {Type}");
@@ -56,6 +64,12 @@ internal class OpaCliBuildArgs
 
         if (Debug)
             result.Append(" --debug");
+
+        if (RegoVersion == RegoVersion.V1)
+            result.Append(" --v1-compatible");
+
+        if (!string.IsNullOrWhiteSpace(Revision))
+            result.Append($" --revision \"{Revision}\"");
 
         if (Ignore is { Count: > 0 })
         {

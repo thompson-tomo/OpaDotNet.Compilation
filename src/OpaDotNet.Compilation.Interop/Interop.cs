@@ -72,6 +72,8 @@ internal static class Interop
         public nint Ignore;
 
         public int IgnoreLen;
+
+        public int RegoVersion;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -111,6 +113,7 @@ internal static class Interop
         RegoCompilerOptions options,
         IEnumerable<string>? entrypoints,
         Stream? capabilitiesJson,
+        string? revision,
         ILogger? logger)
     {
         ArgumentNullException.ThrowIfNull(compile);
@@ -143,6 +146,8 @@ internal static class Interop
                 Debug = options.Debug,
                 PruneUnused = options.PruneUnused,
                 TempDir = string.IsNullOrWhiteSpace(options.OutputPath) ? null : Path.GetFullPath(options.OutputPath),
+                RegoVersion = (int)options.RegoVersion,
+                Revision = revision,
             };
 
             if (entrypoints != null)
@@ -236,6 +241,7 @@ internal static class Interop
         RegoCompilerOptions options,
         IEnumerable<string>? entrypoints,
         Stream? capabilitiesJson,
+        string? revision,
         ILogger? logger)
     {
         ArgumentException.ThrowIfNullOrEmpty(source);
@@ -253,7 +259,7 @@ internal static class Interop
             return (result, bundle);
         }
 
-        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, logger);
+        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, revision, logger);
     }
 
     public static Stream Compile(
@@ -262,6 +268,7 @@ internal static class Interop
         RegoCompilerOptions options,
         IEnumerable<string>? entrypoints,
         Stream? capabilitiesJson,
+        string? revision,
         ILogger? logger)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -300,6 +307,6 @@ internal static class Interop
             }
         }
 
-        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, logger);
+        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, revision, logger);
     }
 }
