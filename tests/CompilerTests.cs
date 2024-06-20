@@ -703,7 +703,8 @@ public abstract class CompilerTests<T, TOptions>
             allow if { true }
             """;
 
-        var policy = await new RegoCompilerWrapper(compiler)
+        var policy = await compiler
+            .Configure()
             .WithSourceCode(src)
             .WithRevision("rev1")
             .CompileAsync();
@@ -738,7 +739,8 @@ public abstract class CompilerTests<T, TOptions>
             allow if { true }
             """;
 
-        var policy = await new RegoCompilerWrapper(compiler)
+        var policy = await compiler
+            .Configure()
             .WithSourceCode(src)
             .CompileAsync();
 
