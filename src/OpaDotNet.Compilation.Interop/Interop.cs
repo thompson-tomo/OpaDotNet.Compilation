@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -109,11 +110,8 @@ internal static class Interop
 
     private static Stream Compile(
         Func<OpaBuildParams, (int, nint)> compile,
-        bool isBundle,
-        RegoCompilerOptions options,
-        IEnumerable<string>? entrypoints,
-        Stream? capabilitiesJson,
-        string? revision,
+        CompilationParameters options,
+        bool forceBundle,
         ILogger? logger)
     {
         ArgumentNullException.ThrowIfNull(compile);
@@ -131,28 +129,27 @@ internal static class Interop
         {
             string? caps = null;
 
-            if (capabilitiesJson != null)
-            {
-                using var sr = new StreamReader(capabilitiesJson);
-                caps = sr.ReadToEnd();
-            }
+            if (!string.IsNullOrWhiteSpace(options.CapabilitiesFilePath))
+                caps = File.ReadAllText(options.CapabilitiesFilePath);
+            else if (!options.CapabilitiesBytes.IsEmpty)
+                caps = Encoding.UTF8.GetString(options.CapabilitiesBytes.Span);
 
             var buildParams = new OpaBuildParams
             {
                 CapabilitiesVersion = options.CapabilitiesVersion,
                 CapabilitiesJson = caps,
-                BundleMode = isBundle,
+                BundleMode = forceBundle || options.IsBundle,
                 Target = "wasm",
                 Debug = options.Debug,
                 PruneUnused = options.PruneUnused,
                 TempDir = string.IsNullOrWhiteSpace(options.OutputPath) ? null : Path.GetFullPath(options.OutputPath),
                 RegoVersion = (int)options.RegoVersion,
-                Revision = revision,
+                Revision = options.Revision,
             };
 
-            if (entrypoints != null)
+            if (options.Entrypoints != null)
             {
-                var ep = entrypoints as string[] ?? entrypoints.ToArray();
+                var ep = options.Entrypoints.ToArray();
                 pEntrypoints = Marshal.AllocCoTaskMem(ep.Length * nint.Size);
                 entrypointsList = new nint[ep.Length];
 
@@ -237,11 +234,8 @@ internal static class Interop
 
     public static Stream Compile(
         string source,
-        bool isBundle,
-        RegoCompilerOptions options,
-        IEnumerable<string>? entrypoints,
-        Stream? capabilitiesJson,
-        string? revision,
+        CompilationParameters options,
+        bool forceBundle,
         ILogger? logger)
     {
         ArgumentException.ThrowIfNullOrEmpty(source);
@@ -259,16 +253,13 @@ internal static class Interop
             return (result, bundle);
         }
 
-        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, revision, logger);
+        return Compile(p => CompileFunc(source, p), options, forceBundle, logger);
     }
 
     public static Stream Compile(
         Stream source,
-        bool isBundle,
-        RegoCompilerOptions options,
-        IEnumerable<string>? entrypoints,
-        Stream? capabilitiesJson,
-        string? revision,
+        CompilationParameters options,
+        bool forceBundle,
         ILogger? logger)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -307,6 +298,6 @@ internal static class Interop
             }
         }
 
-        return Compile(p => CompileFunc(source, p), isBundle, options, entrypoints, capabilitiesJson, revision, logger);
+        return Compile(p => CompileFunc(source, p), options, forceBundle, logger);
     }
 }

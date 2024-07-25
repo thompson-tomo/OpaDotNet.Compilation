@@ -71,7 +71,7 @@ public class RegoCliCompiler : IRegoCompiler
                 ? new DirectoryInfo(fullPath)
                 : new FileInfo(fullPath).Directory!;
 
-        var outDir = new DirectoryInfo(_options.Value.OutputPath ?? bundleDirectory.FullName);
+        var outDir = new DirectoryInfo(parameters.OutputPath ?? bundleDirectory.FullName);
         var outputPath = outDir.FullName;
         var outputFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.tar.gz");
 
@@ -90,12 +90,12 @@ public class RegoCliCompiler : IRegoCompiler
             Entrypoints = parameters.Entrypoints?.ToHashSet(),
             ExtraArguments = _options.Value.ExtraArguments,
             CapabilitiesFile = capsFile?.FullName,
-            CapabilitiesVersion = _options.Value.CapabilitiesVersion,
-            PruneUnused = _options.Value.PruneUnused,
-            Debug = _options.Value.Debug,
-            Ignore = _options.Value.Ignore,
+            CapabilitiesVersion = parameters.CapabilitiesVersion,
+            PruneUnused = parameters.PruneUnused,
+            Debug = parameters.Debug,
+            Ignore = parameters.Ignore,
             Revision = parameters.Revision,
-            RegoVersion = _options.Value.RegoVersion,
+            RegoVersion = parameters.RegoVersion,
         };
 
         try
@@ -120,7 +120,7 @@ public class RegoCliCompiler : IRegoCompiler
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var path = _options.Value.OutputPath ?? AppContext.BaseDirectory;
+        var path = parameters.OutputPath ?? AppContext.BaseDirectory;
         var fileName = Guid.NewGuid();
         var sourceFile = new FileInfo(Path.Combine(path, $"{fileName}.tar.gz"));
 
@@ -178,7 +178,7 @@ public class RegoCliCompiler : IRegoCompiler
             result.Attributes |= FileAttributes.Temporary;
         }
 
-        if (result == null || string.IsNullOrWhiteSpace(_options.Value.CapabilitiesVersion))
+        if (result == null || string.IsNullOrWhiteSpace(parameters.CapabilitiesVersion))
             return result;
 
         var tmpCaps = result;
@@ -192,7 +192,7 @@ public class RegoCliCompiler : IRegoCompiler
                 cli,
                 outputPath,
                 capsStream,
-                _options.Value.CapabilitiesVersion,
+                parameters.CapabilitiesVersion,
                 cancellationToken
                 ).ConfigureAwait(false);
 

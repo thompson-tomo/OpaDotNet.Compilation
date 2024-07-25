@@ -13,7 +13,7 @@ namespace OpaDotNet.Compilation.Tests;
 [UsedImplicitly]
 [Trait("NeedsCli", "true")]
 [Trait("Category", "Cli")]
-public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOptions>
+public class CliCompilerTests : CompilerTests<RegoCliCompiler>
 {
     public CliCompilerTests(ITestOutputHelper output) : base(output)
     {
@@ -21,12 +21,9 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
 
     protected override string BaseOutputPath => "cli";
 
-    protected override RegoCliCompiler CreateCompiler(RegoCliCompilerOptions? opts = null, ILoggerFactory? loggerFactory = null)
+    protected override RegoCliCompiler CreateCompiler(ILoggerFactory? loggerFactory = null)
     {
-        return new RegoCliCompiler(
-            opts == null ? null : new OptionsWrapper<RegoCliCompilerOptions>(opts),
-            loggerFactory?.CreateLogger<RegoCliCompiler>()
-            );
+        return new RegoCliCompiler(null, loggerFactory?.CreateLogger<RegoCliCompiler>());
     }
 
     [Fact]
@@ -41,7 +38,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
         var compiler = new RegoCliCompiler(new OptionsWrapper<RegoCliCompilerOptions>(opts));
 
         _ = await Assert.ThrowsAsync<RegoCompilationException>(
-            () => compiler.CompileFile("fail.rego")
+            () => compiler.CompileFileAsync("fail.rego", new())
             );
     }
 
@@ -57,9 +54,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
 
         var opts = new RegoCliCompilerOptions
         {
-            CapabilitiesVersion = DefaultCaps,
             PreserveBuildArtifacts = true,
-            OutputPath = di.FullName,
         };
 
         var compiler = new RegoCliCompiler(
@@ -67,10 +62,15 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler, RegoCliCompilerOp
             LoggerFactory.CreateLogger<RegoCliCompiler>()
             );
 
-        var policy = await compiler.CompileBundle(
+        var policy = await compiler.CompileBundleAsync(
             Path.Combine("TestData", "capabilities"),
-            new[] { "capabilities/f" },
-            Path.Combine("TestData", "capabilities", "capabilities.json")
+            new()
+            {
+                CapabilitiesVersion = DefaultCaps,
+                OutputPath = di.FullName,
+                Entrypoints = new HashSet<string>(["capabilities/f"]),
+                CapabilitiesFilePath = Path.Combine("TestData", "capabilities", "capabilities.json"),
+            }
             );
 
         Assert.IsType<FileStream>(policy);

@@ -4,9 +4,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
-using OpaDotNet.Compilation.Abstractions;
 using OpaDotNet.Compilation.Interop;
 
 using Xunit.Abstractions;
@@ -15,7 +13,7 @@ namespace OpaDotNet.Compilation.Tests;
 
 [UsedImplicitly]
 [Trait("Category", "Interop")]
-public class InteropCompilerTests(ITestOutputHelper output) : CompilerTests<RegoInteropCompiler, RegoCompilerOptions>(output)
+public class InteropCompilerTests(ITestOutputHelper output) : CompilerTests<RegoInteropCompiler>(output)
 {
     static InteropCompilerTests()
     {
@@ -28,12 +26,9 @@ public class InteropCompilerTests(ITestOutputHelper output) : CompilerTests<Rego
 
     protected override string BaseOutputPath => "iop";
 
-    protected override RegoInteropCompiler CreateCompiler(RegoCompilerOptions? opts = null, ILoggerFactory? loggerFactory = null)
+    protected override RegoInteropCompiler CreateCompiler(ILoggerFactory? loggerFactory = null)
     {
-        return new RegoInteropCompiler(
-            opts == null ? null : new OptionsWrapper<RegoCompilerOptions>(opts),
-            loggerFactory?.CreateLogger<RegoInteropCompiler>()
-            );
+        return new RegoInteropCompiler(loggerFactory?.CreateLogger<RegoInteropCompiler>());
     }
 
     private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
