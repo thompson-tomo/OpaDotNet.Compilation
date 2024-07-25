@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using BenchmarkDotNet.Attributes;
@@ -19,13 +20,13 @@ public class Compilers
     public async Task<Stream> Cli()
     {
         var cli = new RegoCliCompiler();
-        return await cli.CompileFile(SourcePath, _entrypoints);
+        return await cli.CompileFileAsync(SourcePath, new() { Entrypoints = _entrypoints?.ToHashSet() });
     }
 
     [Benchmark]
     public async Task<Stream> Interop()
     {
         var interop = new RegoInteropCompiler();
-        return await interop.CompileFile(SourcePath, _entrypoints);
+        return await interop.CompileFileAsync(SourcePath, new() { Entrypoints = _entrypoints?.ToHashSet() });
     }
 }

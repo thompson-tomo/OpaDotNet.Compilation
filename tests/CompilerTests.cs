@@ -46,7 +46,7 @@ public abstract class CompilerTests<T, TOptions>
             Debug = true,
         };
 
-        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new[] { entrypoint };
+        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new HashSet<string>([entrypoint]);
         var compiler = CreateCompiler(opts, LoggerFactory);
 
         path ??= Path.Combine("TestData", "policy.rego");
@@ -54,7 +54,7 @@ public abstract class CompilerTests<T, TOptions>
         if (path.StartsWith("~"))
             path = Path.Combine(AppContext.BaseDirectory, path[1..]);
 
-        var policy = await compiler.CompileFile(path, eps);
+        var policy = await compiler.CompileFileAsync(path, new() { Entrypoints = eps });
 
         AssertBundle.DumpBundle(policy, OutputHelper);
 
@@ -76,7 +76,7 @@ public abstract class CompilerTests<T, TOptions>
             Debug = true,
         };
 
-        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new[] { entrypoint };
+        var eps = string.IsNullOrWhiteSpace(entrypoint) ? null : new HashSet<string>([entrypoint]);
         var compiler = CreateCompiler(opts, LoggerFactory);
 
         path ??= Path.Combine("TestData", "compile-bundle", "example");
@@ -84,7 +84,7 @@ public abstract class CompilerTests<T, TOptions>
         if (path.StartsWith("~"))
             path = Path.Combine(AppContext.BaseDirectory, path[1..]);
 
-        var policy = await compiler.CompileBundle(path, eps);
+        var policy = await compiler.CompileBundleAsync(path, new() { Entrypoints = eps });
 
         AssertBundle.DumpBundle(policy, OutputHelper);
 
@@ -115,7 +115,7 @@ public abstract class CompilerTests<T, TOptions>
         var compiler = CreateCompiler(opts, LoggerFactory);
 
         path ??= Path.Combine("TestData", "src.bundle.tar.gz");
-        var policy = await compiler.CompileBundle(path, eps);
+        var policy = await compiler.CompileBundleAsync(path, new() { Entrypoints = eps?.ToHashSet() });
 
         AssertBundle.IsValid(policy);
     }
@@ -138,7 +138,9 @@ public abstract class CompilerTests<T, TOptions>
     {
         var opts = new TOptions();
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var ex = await Assert.ThrowsAsync<RegoCompilationException>(() => compiler.CompileSource("bad rego", new[] { "ep" }));
+        var ex = await Assert.ThrowsAsync<RegoCompilationException>(
+            () => compiler.CompileSourceAsync("bad rego", new() { Entrypoints = new HashSet<string>(["ep"]) })
+            );
 
         Assert.Contains("rego_parse_error: package expected", ex.Message);
     }
@@ -149,10 +151,13 @@ public abstract class CompilerTests<T, TOptions>
         var compiler = CreateCompiler(new(), LoggerFactory);
 
         _ = await Assert.ThrowsAsync<RegoCompilationException>(
-            () => compiler.CompileBundle(
+            () => compiler.CompileBundleAsync(
                 Path.Combine("TestData", "capabilities"),
-                new[] { "capabilities/f" },
-                Path.Combine("TestData", "capabilities", "capabilities.json")
+                new()
+                {
+                    Entrypoints = new HashSet<string>(["capabilities/f"]),
+                    CapabilitiesFilePath = Path.Combine("TestData", "capabilities", "capabilities.json"),
+                }
                 )
             );
     }
@@ -167,9 +172,9 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileBundle(
+        await using var policy = await compiler.CompileBundleAsync(
             Path.Combine("TestData", "compile-bundle", "example"),
-            new[] { "test1/hello", "test2/hello" }
+            new() { Entrypoints = new HashSet<string>(["test1/hello", "test2/hello"]) }
             );
 
         Assert.NotNull(policy);
@@ -185,9 +190,9 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileSource(
+        await using var policy = await compiler.CompileSourceAsync(
             TestHelpers.SimplePolicySource,
-            TestHelpers.SimplePolicyEntrypoints
+            new() { Entrypoints = new HashSet<string>(TestHelpers.SimplePolicyEntrypoints) }
             );
 
         Assert.NotNull(policy);
@@ -203,10 +208,13 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileBundle(
+        await using var policy = await compiler.CompileBundleAsync(
             Path.Combine("TestData", "capabilities"),
-            new[] { "capabilities/f" },
-            Path.Combine("TestData", "capabilities", "capabilities.json")
+            new()
+            {
+                Entrypoints = new HashSet<string>(["capabilities/f"]),
+                CapabilitiesFilePath = Path.Combine("TestData", "capabilities", "capabilities.json")
+            }
             );
 
         AssertBundle.IsValid(policy);
@@ -230,14 +238,13 @@ public abstract class CompilerTests<T, TOptions>
         }
 
         bundle.Seek(0, SeekOrigin.Begin);
-        await using var capsFs = File.OpenRead(Path.Combine("TestData", "capabilities", "capabilities.json"));
+        var capsBytes = await File.ReadAllBytesAsync(Path.Combine("TestData", "capabilities", "capabilities.json"));
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileStream(
+        await using var policy = await compiler.CompileBundleAsync(
             bundle,
-            new[] { "capabilities/f" },
-            capsFs
+            new() { Entrypoints = new HashSet<string>(["capabilities/f"]), CapabilitiesBytes = capsBytes }
             );
 
         AssertBundle.DumpBundle(policy, OutputHelper);
@@ -286,7 +293,7 @@ public abstract class CompilerTests<T, TOptions>
             tmpDir.Create();
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var bundle = await compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints);
+        var bundle = await compiler.CompileBundleAsync(ms, new() { Entrypoints = TestHelpers.SimplePolicyEntrypoints.ToHashSet() });
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 
@@ -324,7 +331,7 @@ public abstract class CompilerTests<T, TOptions>
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var bundle = await compiler.CompileStream(ms);
+        var bundle = await compiler.CompileBundleAsync(ms, new());
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
     }
@@ -363,7 +370,7 @@ public abstract class CompilerTests<T, TOptions>
         tmpDir.Create();
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        var bundle = await compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints);
+        var bundle = await compiler.CompileBundleAsync(ms, new() { Entrypoints = TestHelpers.SimplePolicyEntrypoints.ToHashSet() });
 
         await bundle.DisposeAsync();
 
@@ -402,7 +409,9 @@ public abstract class CompilerTests<T, TOptions>
         tmpDir.Create();
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        await Assert.ThrowsAsync<RegoCompilationException>(() => compiler.CompileStream(ms, TestHelpers.SimplePolicyEntrypoints));
+        await Assert.ThrowsAsync<RegoCompilationException>(
+            () => compiler.CompileBundleAsync(ms, new() { Entrypoints = TestHelpers.SimplePolicyEntrypoints.ToHashSet() })
+            );
 
         var filesCount = tmpDir.EnumerateFiles().Count();
         Assert.Equal(0, filesCount);
@@ -419,10 +428,13 @@ public abstract class CompilerTests<T, TOptions>
         var compiler = CreateCompiler(opts, LoggerFactory);
 
         _ = await Assert.ThrowsAsync<RegoCompilationException>(
-            () => compiler.CompileBundle(
+            () => compiler.CompileBundleAsync(
                 Path.Combine("TestData", "multi-caps"),
-                new[] { "capabilities/f", "capabilities/f2" },
-                Path.Combine("TestData", "multi-caps", "caps1.json")
+                new()
+                {
+                    Entrypoints = new HashSet<string>(["capabilities/f", "capabilities/f2"]),
+                    CapabilitiesFilePath = Path.Combine("TestData", "multi-caps", "caps1.json"),
+                }
                 )
             );
     }
@@ -456,10 +468,13 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileBundle(
+        await using var policy = await compiler.CompileBundleAsync(
             Path.Combine("TestData", "multi-caps"),
-            new[] { "capabilities/f", "capabilities/f2" },
-            tmpCapsFile
+            new()
+            {
+                Entrypoints = new HashSet<string>(["capabilities/f", "capabilities/f2"]),
+                CapabilitiesFilePath = tmpCapsFile,
+            }
             );
 
         AssertBundle.IsValid(policy);
@@ -487,12 +502,18 @@ public abstract class CompilerTests<T, TOptions>
         await using var caps2Fs = File.OpenRead(Path.Combine("TestData", "multi-caps", "caps2.json"));
         await using var capsFs = BundleWriter.MergeCapabilities(caps1Fs, caps2Fs);
 
+        Memory<byte> capsMem = new byte[capsFs.Length];
+        _ = await capsFs.ReadAsync(capsMem);
+
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var policy = await compiler.CompileStream(
+        await using var policy = await compiler.CompileBundleAsync(
             bundle,
-            new[] { "capabilities/f", "capabilities/f2" },
-            capsFs
+            new()
+            {
+                Entrypoints = new HashSet<string>(["capabilities/f", "capabilities/f2"]),
+                CapabilitiesBytes = capsMem,
+            }
             );
 
         AssertBundle.DumpBundle(policy, OutputHelper);
@@ -516,7 +537,7 @@ public abstract class CompilerTests<T, TOptions>
         };
 
         var compiler = CreateCompiler(opts, LoggerFactory);
-        await using var bundle = await compiler.CompileBundle(path, entrypoints);
+        await using var bundle = await compiler.CompileBundleAsync(path, new() { Entrypoints = entrypoints.ToHashSet() });
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 
@@ -563,7 +584,7 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var bundle = await compiler.CompileStream(ms, entrypoints);
+        await using var bundle = await compiler.CompileBundleAsync(ms, new() { Entrypoints = entrypoints.ToHashSet() });
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 
@@ -576,7 +597,7 @@ public abstract class CompilerTests<T, TOptions>
                 {
                     OutputHelper.WriteLine(pp.RootElement.GetRawText());
 
-                    foreach (var excl in exclusions ?? Array.Empty<string>())
+                    foreach (var excl in exclusions ?? [])
                     {
                         if (pp.RootElement.TryGetProperty(excl, out _))
                             Assert.Fail($"data.json contains excluded element {excl}");
@@ -623,7 +644,10 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var bundle = await compiler.CompileBundle(targetPath.FullName, new[] { "sl/allow" });
+        await using var bundle = await compiler.CompileBundleAsync(
+            targetPath.FullName,
+            new() { Entrypoints = new HashSet<string>(["sl/allow"]) }
+            );
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 
@@ -665,7 +689,7 @@ public abstract class CompilerTests<T, TOptions>
 
         var compiler = CreateCompiler(opts, LoggerFactory);
 
-        await using var bundle = await compiler.CompileStream(ms, new[] { "sl/allow" });
+        await using var bundle = await compiler.CompileBundleAsync(ms, new() { Entrypoints = new HashSet<string>(["sl/allow"]) });
 
         AssertBundle.DumpBundle(bundle, OutputHelper);
 
@@ -703,17 +727,16 @@ public abstract class CompilerTests<T, TOptions>
             allow if { true }
             """;
 
-        var policy = await compiler
-            .Configure()
-            .WithSourceCode(src)
-            .WithRevision("rev1")
-            .CompileAsync();
+        var policy = await compiler.CompileSourceAsync(
+            src,
+            new() { Revision = "rev1" }
+            );
 
         AssertBundle.DumpBundle(policy, OutputHelper);
         AssertBundle.Content(
             policy,
             p => AssertBundle.HasEntry(p, "/data.json"),
-            p => p.Name.EndsWith("src0.rego"),
+            p => p.Name.EndsWith("policy.rego"),
             p => AssertBundle.HasEntry(p, "/policy.wasm"),
             p => AssertBundle.AssertManifest(p, pp => string.Equals("rev1", pp.Revision))
             );
@@ -739,10 +762,7 @@ public abstract class CompilerTests<T, TOptions>
             allow if { true }
             """;
 
-        var policy = await compiler
-            .Configure()
-            .WithSourceCode(src)
-            .CompileAsync();
+        var policy = await compiler.CompileSourceAsync(src, new());
 
         AssertBundle.IsValid(policy);
     }

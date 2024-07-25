@@ -78,12 +78,18 @@ public class RegoInteropCompiler : IRegoCompiler
         if (path.StartsWith("./") || path.StartsWith(".\\"))
             path = path[2..];
 
-        var caps = parameters.CapabilitiesStream;
+        Stream? caps = null;
 
         try
         {
             if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
                 caps = new FileStream(parameters.CapabilitiesFilePath, FileMode.Open);
+            else if (!parameters.CapabilitiesBytes.IsEmpty)
+            {
+                caps = new MemoryStream(parameters.CapabilitiesBytes.Length);
+                await caps.WriteAsync(parameters.CapabilitiesBytes, cancellationToken).ConfigureAwait(false);
+                caps.Seek(0, SeekOrigin.Begin);
+            }
 
             var result = Interop.Compile(
                 NormalizePath(path),
@@ -113,13 +119,19 @@ public class RegoInteropCompiler : IRegoCompiler
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var caps = parameters.CapabilitiesStream;
+        Stream? caps = null;
         Stream? bundle = null;
 
         try
         {
             if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
                 caps = new FileStream(parameters.CapabilitiesFilePath, FileMode.Open);
+            else if (!parameters.CapabilitiesBytes.IsEmpty)
+            {
+                caps = new MemoryStream(parameters.CapabilitiesBytes.Length);
+                await caps.WriteAsync(parameters.CapabilitiesBytes, cancellationToken).ConfigureAwait(false);
+                caps.Seek(0, SeekOrigin.Begin);
+            }
 
             if (!parameters.IsBundle)
             {

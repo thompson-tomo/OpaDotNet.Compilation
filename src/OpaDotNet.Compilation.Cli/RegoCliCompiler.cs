@@ -153,7 +153,7 @@ public class RegoCliCompiler : IRegoCompiler
     {
         FileInfo? result = null;
 
-        if (string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath) && parameters.CapabilitiesStream == null)
+        if (string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath) && parameters.CapabilitiesBytes.IsEmpty)
             return null;
 
         if (!string.IsNullOrWhiteSpace(parameters.CapabilitiesFilePath))
@@ -164,7 +164,7 @@ public class RegoCliCompiler : IRegoCompiler
                 throw new RegoCompilationException($"Capabilities file {result.FullName} was not found");
         }
 
-        if (parameters.CapabilitiesStream != null)
+        if (!parameters.CapabilitiesBytes.IsEmpty)
         {
             var capsFileName = Path.Combine(outputPath, $"{Guid.NewGuid()}.json");
             result = new FileInfo(capsFileName);
@@ -172,7 +172,7 @@ public class RegoCliCompiler : IRegoCompiler
             var fs = result.OpenWrite();
             await using var _ = fs.ConfigureAwait(false);
 
-            await parameters.CapabilitiesStream.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+            await fs.WriteAsync(parameters.CapabilitiesBytes, cancellationToken).ConfigureAwait(false);
             await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             result.Attributes |= FileAttributes.Temporary;
