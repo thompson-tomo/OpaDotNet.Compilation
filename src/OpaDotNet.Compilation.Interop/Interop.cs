@@ -51,20 +51,17 @@ internal static class Interop
 
         public string? CapabilitiesVersion;
 
-        [MarshalAs(UnmanagedType.I1)]
-        public bool BundleMode;
+        public int BundleMode;
 
         public nint Entrypoints;
 
         public int EntrypointsLen;
 
-        [MarshalAs(UnmanagedType.I1)]
-        public bool Debug;
+        public int Debug;
 
         public int OptimizationLevel;
 
-        [MarshalAs(UnmanagedType.I1)]
-        public bool PruneUnused;
+        public int PruneUnused;
 
         public string? TempDir;
 
@@ -138,10 +135,11 @@ internal static class Interop
             {
                 CapabilitiesVersion = options.CapabilitiesVersion,
                 CapabilitiesJson = caps,
-                BundleMode = forceBundle || options.IsBundle,
+                BundleMode = forceBundle || options.IsBundle ? 1 : 0,
+                OptimizationLevel = 0,
                 Target = "wasm",
-                Debug = options.Debug,
-                PruneUnused = options.PruneUnused,
+                Debug = options.Debug ? 1 : 0,
+                PruneUnused = options.PruneUnused ? 1 : 0,
                 TempDir = string.IsNullOrWhiteSpace(options.OutputPath) ? null : Path.GetFullPath(options.OutputPath),
                 RegoVersion = (int)options.RegoVersion,
                 Revision = options.Revision,
