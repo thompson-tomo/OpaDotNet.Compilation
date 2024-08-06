@@ -17,7 +17,7 @@ of [OPA SDK](https://pkg.go.dev/github.com/open-policy-agent/opa/sdk) for policy
 using OpaDotNet.Compilation.Interop;
 
 var compiler = new RegoInteropCompiler();
-var bundleStream = await compiler.CompileFile("example.rego", new[] { "example/hello" });
+var bundleStream = await compiler.CompileFileAsync("example.rego", new() { Entrypoints = new HashSet<string>(["example/hello"]) });
 
 // Use compiled policy bundle.
 ...

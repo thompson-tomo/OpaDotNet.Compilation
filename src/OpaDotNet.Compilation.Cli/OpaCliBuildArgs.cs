@@ -2,8 +2,6 @@
 
 using JetBrains.Annotations;
 
-using Microsoft.Extensions.Primitives;
-
 using OpaDotNet.Compilation.Abstractions;
 
 namespace OpaDotNet.Compilation.Cli;

@@ -15,6 +15,6 @@ using OpaDotNet.Compilation.Cli;
 var compiler = new RegoCliCompiler();
 
 // Equivalent to: opa built -t wasm -e 'example/hello' ./example.rego
-var bundleStream = await compiler.CompileFile("example.rego", new[] { "example/hello" });
+var bundleStream = await compiler.CompileFileAsync("example.rego", new() { Entrypoints = new HashSet<string>(["example/hello"]) });
 ...
 ```

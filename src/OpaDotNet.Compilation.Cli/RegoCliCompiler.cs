@@ -4,7 +4,6 @@ using JetBrains.Annotations;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 using OpaDotNet.Compilation.Abstractions;
 
@@ -16,11 +15,9 @@ namespace OpaDotNet.Compilation.Cli;
 [PublicAPI]
 public class RegoCliCompiler : IRegoCompiler
 {
-    private static IOptions<RegoCliCompilerOptions> Default { get; } = new OptionsWrapper<RegoCliCompilerOptions>(new());
-
     private readonly ILogger _logger;
 
-    private readonly IOptions<RegoCliCompilerOptions> _options;
+    private readonly RegoCliCompilerOptions _options;
 
     /// <summary>
     /// Creates new instance of <see cref="RegoCliCompiler"/> class.
@@ -28,16 +25,16 @@ public class RegoCliCompiler : IRegoCompiler
     /// <param name="options">Compilation options</param>
     /// <param name="logger">Logger instance</param>
     public RegoCliCompiler(
-        IOptions<RegoCliCompilerOptions>? options = null,
+        RegoCliCompilerOptions? options = null,
         ILogger<RegoCliCompiler>? logger = null)
     {
-        _options = options ?? Default;
+        _options = options ?? new();
         _logger = logger ?? NullLogger<RegoCliCompiler>.Instance;
     }
 
-    private string CliPath => string.IsNullOrWhiteSpace(_options.Value.OpaToolPath)
+    private string CliPath => string.IsNullOrWhiteSpace(_options.OpaToolPath)
         ? "opa"
-        : _options.Value.OpaToolPath;
+        : _options.OpaToolPath;
 
     private static string NormalizePath(string path) => path.Replace("\\", "/");
 
@@ -88,7 +85,7 @@ public class RegoCliCompiler : IRegoCompiler
             SourcePath = sourcePath,
             OutputFile = outputFileName,
             Entrypoints = parameters.Entrypoints?.ToHashSet(),
-            ExtraArguments = _options.Value.ExtraArguments,
+            ExtraArguments = _options.ExtraArguments,
             CapabilitiesFile = capsFile?.FullName,
             CapabilitiesVersion = parameters.CapabilitiesVersion,
             PruneUnused = parameters.PruneUnused,
@@ -106,7 +103,7 @@ public class RegoCliCompiler : IRegoCompiler
         {
             var doCleanup = capsFile != null && capsFile.Attributes.HasFlag(FileAttributes.Temporary);
 
-            if (doCleanup && !_options.Value.PreserveBuildArtifacts)
+            if (doCleanup && !_options.PreserveBuildArtifacts)
                 capsFile?.Delete();
         }
     }
@@ -140,7 +137,7 @@ public class RegoCliCompiler : IRegoCompiler
         }
         finally
         {
-            if (!_options.Value.PreserveBuildArtifacts)
+            if (!_options.PreserveBuildArtifacts)
                 sourceFile.Delete();
         }
     }
@@ -266,7 +263,7 @@ public class RegoCliCompiler : IRegoCompiler
 
         _logger.LogInformation("Compilation succeeded");
 
-        return _options.Value.PreserveBuildArtifacts
+        return _options.PreserveBuildArtifacts
             ? new FileStream(args.OutputFile, FileMode.Open)
             : new DeleteOnCloseFileStream(args.OutputFile, FileMode.Open);
     }

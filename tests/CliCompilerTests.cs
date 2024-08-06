@@ -35,7 +35,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler>
             ExtraArguments = "--debug",
         };
 
-        var compiler = new RegoCliCompiler(new OptionsWrapper<RegoCliCompilerOptions>(opts));
+        var compiler = new RegoCliCompiler(opts);
 
         _ = await Assert.ThrowsAsync<RegoCompilationException>(
             () => compiler.CompileFileAsync("fail.rego", new())
@@ -58,7 +58,7 @@ public class CliCompilerTests : CompilerTests<RegoCliCompiler>
         };
 
         var compiler = new RegoCliCompiler(
-            new OptionsWrapper<RegoCliCompilerOptions>(opts),
+            opts,
             LoggerFactory.CreateLogger<RegoCliCompiler>()
             );
 

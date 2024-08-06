@@ -8,7 +8,7 @@ namespace OpaDotNet.Compilation.Cli;
 /// Contains members that affect compiler behaviour.
 /// </summary>
 [PublicAPI]
-public class RegoCliCompilerOptions //: RegoCompilerOptions
+public class RegoCliCompilerOptions
 {
     /// <summary>
     /// Full path to opa cli tool.

@@ -9,7 +9,6 @@
     <PackageReference Include="JetBrains.Annotations"/>
     <PackageReference Include="OpaDotNet.Compilation.Abstractions"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
-    <PackageReference Include="Microsoft.Extensions.Options"/>
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"/>
     <PackageReference Include="Microsoft.SourceLink.GitHub"/>
   </ItemGroup>

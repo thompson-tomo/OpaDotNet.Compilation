@@ -17,7 +17,6 @@ public class RegoInteropCompiler : IRegoCompiler
     /// <summary>
     /// Creates new instance of <see cref="RegoInteropCompiler"/> class.
     /// </summary>
-    /// <param name="options">Compilation options</param>
     /// <param name="logger">Logger instance</param>
     public RegoInteropCompiler(ILogger<RegoInteropCompiler>? logger = null)
     {
