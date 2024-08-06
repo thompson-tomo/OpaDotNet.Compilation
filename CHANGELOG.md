@@ -1,5 +1,11 @@
 # Changelog
 
+## OpaDotNet.Compilation v1.7.4 (2024-08-06)
+
+### Bug Fixes
+
+* Fix interop parameters marshaling
+
 ## OpaDotNet.Compilation v1.7.3 (2024-06-14)
 
 ### Bug Fixes
