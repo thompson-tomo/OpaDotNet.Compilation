@@ -72,6 +72,10 @@ internal static class Interop
         public int IgnoreLen;
 
         public int RegoVersion;
+
+        public int FollowSymlinks;
+
+        public int DisablePrintStatements;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -143,6 +147,8 @@ internal static class Interop
                 TempDir = string.IsNullOrWhiteSpace(options.OutputPath) ? null : Path.GetFullPath(options.OutputPath),
                 RegoVersion = (int)options.RegoVersion,
                 Revision = options.Revision,
+                FollowSymlinks = options.FollowSymlinks ? 1 : 0,
+                DisablePrintStatements = options.DisablePrintStatements ? 1 : 0,
             };
 
             if (options.Entrypoints != null)

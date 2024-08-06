@@ -37,6 +37,8 @@ internal class OpaCliBuildArgs
 
     public RegoVersion RegoVersion { get; init; }
 
+    public bool FollowSymlinks { get; init; }
+
     public override string ToString()
     {
         var result = new StringBuilder($"-t {Type}");
@@ -68,6 +70,9 @@ internal class OpaCliBuildArgs
 
         if (!string.IsNullOrWhiteSpace(Revision))
             result.Append($" --revision \"{Revision}\"");
+
+        if (FollowSymlinks)
+            result.Append(" --follow-symlinks");
 
         if (Ignore is { Count: > 0 })
         {

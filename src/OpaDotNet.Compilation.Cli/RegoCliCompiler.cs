@@ -93,6 +93,7 @@ public class RegoCliCompiler : IRegoCompiler
             Ignore = parameters.Ignore,
             Revision = parameters.Revision,
             RegoVersion = parameters.RegoVersion,
+            FollowSymlinks = parameters.FollowSymlinks,
         };
 
         try

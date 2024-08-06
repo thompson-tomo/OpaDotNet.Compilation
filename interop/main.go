@@ -27,6 +27,8 @@ import (
 			char** ignore;
 			int ignoreLen;
 			int regoVersion;
+			int followSymlinks;
+			int disablePrintStatements;
 		};
 
 		struct OpaFsBuildParams {
@@ -75,20 +77,22 @@ func init() {
 }
 
 type buildParams struct {
-	source              string
-	capabilitiesJSON    string
-	capabilitiesVersion string
-	target              string
-	bundleMode          bool
-	entrypoints         []string
-	debug               bool
-	optimizationLevel   int
-	pruneUnused         bool
-	revision            string
-	fs                  fs.FS
-	ignore              []string
-	bundle              *bundle.Bundle
-	regoVersion         ast.RegoVersion
+	source                 string
+	capabilitiesJSON       string
+	capabilitiesVersion    string
+	target                 string
+	bundleMode             bool
+	entrypoints            []string
+	debug                  bool
+	optimizationLevel      int
+	pruneUnused            bool
+	revision               string
+	fs                     fs.FS
+	ignore                 []string
+	bundle                 *bundle.Bundle
+	regoVersion            ast.RegoVersion
+	followSymlinks         bool
+	disablePrintStatements bool
 }
 
 //export OpaGetVersion
@@ -264,17 +268,19 @@ func opaMakeBuildParams(params C.struct_OpaBuildParams) *buildParams {
 	}
 
 	return &buildParams{
-		capabilitiesJSON:    C.GoString(params.capabilitiesJSON),
-		capabilitiesVersion: C.GoString(params.capabilitiesVersion),
-		target:              C.GoString(params.target),
-		bundleMode:          params.bundleMode > 0,
-		entrypoints:         eps,
-		debug:               params.debug > 0,
-		optimizationLevel:   int(params.optimizationLevel),
-		pruneUnused:         params.pruneUnused > 0,
-		revision:            C.GoString(params.revision),
-		ignore:              ignore,
-		regoVersion:         ast.RegoVersion(params.regoVersion),
+		capabilitiesJSON:       C.GoString(params.capabilitiesJSON),
+		capabilitiesVersion:    C.GoString(params.capabilitiesVersion),
+		target:                 C.GoString(params.target),
+		bundleMode:             params.bundleMode > 0,
+		entrypoints:            eps,
+		debug:                  params.debug > 0,
+		optimizationLevel:      int(params.optimizationLevel),
+		pruneUnused:            params.pruneUnused > 0,
+		revision:               C.GoString(params.revision),
+		ignore:                 ignore,
+		regoVersion:            ast.RegoVersion(params.regoVersion),
+		followSymlinks:         params.followSymlinks > 0,
+		disablePrintStatements: params.disablePrintStatements > 0,
 	}
 }
 
@@ -369,13 +375,14 @@ func opaBuild(params *buildParams, loggerBuffer io.Writer) (*bytes.Buffer, error
 		WithEntrypoints(params.entrypoints...).
 		WithPaths(params.source).
 		WithCapabilities(caps).
-		WithEnablePrintStatements(true).
+		WithEnablePrintStatements(!params.disablePrintStatements).
 		WithOutput(buf).
 		WithPruneUnused(params.pruneUnused).
 		WithOptimizationLevel(params.optimizationLevel).
 		WithRegoAnnotationEntrypoints(true).
 		WithFilter(buildCommandLoaderFilter(params.bundleMode, params.ignore)).
-		WithRegoVersion(params.regoVersion)
+		WithRegoVersion(params.regoVersion).
+		WithFollowSymlinks(params.followSymlinks)
 
 	if params.bundle != nil {
 		compiler.WithBundle(params.bundle)

@@ -621,11 +621,13 @@ public abstract class CompilerTests<T>
         return targetPath;
     }
 
-    [Fact(Skip = "OPA backend fails to deal with symlinks correctly")]
-    public async Task SymlinksFail()
+    [Fact]
+    public async Task FollowSymlinks()
     {
         // We need to do more setup for this one.
         var targetPath = SetupSymlinks();
+
+        var ignore = new[] { ".*" }.ToHashSet();
 
         var compiler = CreateCompiler(LoggerFactory);
 
@@ -635,6 +637,9 @@ public abstract class CompilerTests<T>
             {
                 Entrypoints = new HashSet<string>(["sl/allow"]),
                 CapabilitiesVersion = DefaultCaps,
+                FollowSymlinks = true,
+                Debug = true,
+                Ignore = ignore,
             }
             );
 
