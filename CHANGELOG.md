@@ -1,5 +1,19 @@
 # Changelog
 
+## OpaDotNet.Compilation v2.0.0 (2024-08-06)
+
+### Bug Fixes
+
+* Cli compiler should use relative path when compiling from stream ([91b7c2e](https://github.com/me-viper/OpaDotNet.Compilation/commit/91b7c2ebd62387eafa65509812763dc1e6892968))
+
+### Features
+
+* Support new compiler flags ([8e9954a](https://github.com/me-viper/OpaDotNet.Compilation/commit/8e9954a1aabdefa0199788863a8b4434ab802a75))
+
+### BREAKING CHANGES
+
+* `RegoCompilerOptions` class have been removed. All compilation options are configured using `CompilationParameters`
+
 ## OpaDotNet.Compilation v1.7.4 (2024-08-06)
 
 ### Bug Fixes
