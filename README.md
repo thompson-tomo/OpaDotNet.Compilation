@@ -1,3 +1,6 @@
+> [!CAUTION]
+> This repository moved. Please use the new location: [OpaDotNet](https://github.com/me-viper/OpaDotNet/tree/main/src/Compilation)
+
 [![CI](https://github.com/me-viper/OpaDotNet.Compilation/actions/workflows/ci.yml/badge.svg)](https://github.com/me-viper/OpaDotNet.Compilation/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/me-viper/OpaDotNet.Compilation/badge.svg?branch=main)](https://coveralls.io/github/me-viper/OpaDotNet.Compilation?branch=main)
 ![Static Badge](https://img.shields.io/badge/OPA-_v0.60.0-blue)
