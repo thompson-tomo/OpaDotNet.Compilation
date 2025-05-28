@@ -8,8 +8,8 @@
     <PackageReference Include="OpaDotNet.Compilation.Abstractions"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>
     <PackageReference Include="Microsoft.Extensions.Options"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"/>
-    <PackageReference Include="Microsoft.SourceLink.GitHub"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup>
